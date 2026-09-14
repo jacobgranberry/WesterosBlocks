@@ -20,6 +20,9 @@ import java.util.Optional;
  *   <li>Closed: a 3px slab on each cell's {@code facing.getOpposite()} face.</li>
  *   <li>Open: a 3px slab on each cell's open face
  *       (LEFT -> facing.rotateYCounterclockwise, RIGHT -> facing.rotateYClockwise).</li>
+ *   <li>Every state has its own hinge-side model: the RIGHT models are the LEFT
+ *       models with the texture mirrored, so the hinge and handle stay on the
+ *       correct edge however the door was placed (vanilla's left/right pairs).</li>
  * </ul>
  * Models are authored for FACING = NORTH and oriented per-facing with
  * getRotationForDirection — and the block's collision uses the same face, so
@@ -42,7 +45,8 @@ public class TallDoorBlockExporter extends BaseBlockExporter {
         // UV slice so the texture maps as one coherent door instead of
         // repeating per cell.
         for (String variant : new String[]{
-                "closed_r0", "closed_r1", "closed_r2",
+                "closed_r0_left", "closed_r1_left", "closed_r2_left",
+                "closed_r0_right", "closed_r1_right", "closed_r2_right",
                 "open_r0_left", "open_r1_left", "open_r2_left",
                 "open_r0_right", "open_r1_right", "open_r2_right"}) {
             uploadModel(geometryModel(variant), block, variant, textureMap, generator.modelCollector);
@@ -59,9 +63,8 @@ public class TallDoorBlockExporter extends BaseBlockExporter {
             for (DoorHinge hinge : DoorHinge.values()) {
                 for (boolean open : new boolean[]{false, true}) {
                     for (TallDoorPart part : TallDoorPart.values()) {
-                        String variant = open
-                                ? "open_r" + part.getRow() + (hinge == DoorHinge.LEFT ? "_left" : "_right")
-                                : "closed_r" + part.getRow();
+                        String variant = (open ? "open_r" : "closed_r") + part.getRow()
+                                + (hinge == DoorHinge.LEFT ? "_left" : "_right");
                         variants.register(facing, hinge, open, part,
                                 createVariant(createNestedModelId(block, variant), rotation));
                     }

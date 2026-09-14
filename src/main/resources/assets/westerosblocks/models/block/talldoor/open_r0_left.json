@@ -5,7 +5,7 @@
   },
   "elements": [
     {
-      "__comment": "Open row 0 hinge left (canonical NORTH): in-cell panel on west face, slice u[0,16] v[10.6667,16].",
+      "__comment": "Open row 0 hinge left (canonical NORTH): in-cell panel on west face, door slice v[10.6667,16.0], 3px edges on north/south.",
       "from": [
         0,
         0,
@@ -21,7 +21,7 @@
           "uv": [
             0.0,
             10.6667,
-            16.0,
+            3.0,
             16.0
           ],
           "texture": "#all"
@@ -30,7 +30,7 @@
           "uv": [
             0.0,
             10.6667,
-            16.0,
+            3.0,
             16.0
           ],
           "texture": "#all"
@@ -58,14 +58,14 @@
             0.0,
             10.6667,
             16.0,
-            16.0
+            11.6667
           ],
           "texture": "#all"
         },
         "down": {
           "uv": [
             0.0,
-            10.6667,
+            15.0,
             16.0,
             16.0
           ],

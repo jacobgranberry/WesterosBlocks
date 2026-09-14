@@ -1,15 +1,16 @@
 package com.westerosblocks.block.custom;
 
 import com.westerosblocks.data.BlockDefinition;
+import com.westerosblocks.utils.ModBlockSetType;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.DoorHinge;
 import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.DirectionProperty;
@@ -28,6 +29,7 @@ import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.event.GameEvent;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -41,7 +43,8 @@ import java.util.function.BiPredicate;
  * <p>Multiblock: 3 vertically stacked cells. The origin cell is {@code BOTTOM}.
  * Closed leaves a thin slab on each cell's FACING face; open leaves a thin slab
  * on each cell's hinge face — both are vanilla DoorBlock's shape rules, just
- * spanning 3 cells instead of 2.
+ * spanning 3 cells instead of 2. Placement hinge choice, redstone, pathfinding
+ * and open/close sounds all follow vanilla DoorBlock as well.
  */
 public class WCTallDoorBlock extends Block implements WCBlockDef {
     protected BlockDefinition def;
@@ -49,9 +52,11 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
     public static final BooleanProperty OPEN = Properties.OPEN;
     public static final EnumProperty<DoorHinge> HINGE = Properties.DOOR_HINGE;
+    public static final BooleanProperty POWERED = Properties.POWERED;
     public static final EnumProperty<TallDoorPart> PART = EnumProperty.of("part", TallDoorPart.class);
 
     private final boolean locked;
+    private final BlockSetType blockSetType;
 
     // Door collision: a thin 3-pixel slab on each cardinal face. Closed uses the
     // FACING-face slab on every cell; open uses the hinge-face slab on every
@@ -91,25 +96,37 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
     public static class Factory extends BlockFactory {
         @Override
         public Block buildBlockClass(BlockDefinition definition) {
-            return new WCTallDoorBlock(definition.makeSettings(), definition, definition.isLocked());
+            return new WCTallDoorBlock(definition.makeSettings(), definition, definition.isLocked(),
+                    ModBlockSetType.getBlockSetType(definition.getWoodType()));
         }
     }
 
-    public WCTallDoorBlock(Settings settings, BlockDefinition def, boolean locked) {
+    public WCTallDoorBlock(Settings settings, BlockDefinition def, boolean locked, BlockSetType blockSetType) {
         super(settings.nonOpaque().pistonBehavior(PistonBehavior.BLOCK));
         this.def = def;
         this.locked = locked;
+        this.blockSetType = blockSetType;
 
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(FACING, Direction.NORTH)
                 .with(OPEN, false)
                 .with(HINGE, DoorHinge.LEFT)
+                .with(POWERED, false)
                 .with(PART, TallDoorPart.BOTTOM));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(FACING, OPEN, HINGE, PART);
+        builder.add(FACING, OPEN, HINGE, POWERED, PART);
+    }
+
+    // Mobs path through an open door and never through a closed one, like vanilla.
+    @Override
+    protected boolean canPathfindThrough(BlockState state, NavigationType type) {
+        return switch (type) {
+            case LAND, AIR -> state.get(OPEN);
+            case WATER -> false;
+        };
     }
 
     @Override
@@ -193,9 +210,12 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
         if (!canPlaceAt(ctx)) {
             return null;
         }
+        // Like vanilla, a door placed into an already-powered spot starts open.
+        boolean powered = isReceivingPower(ctx.getWorld(), ctx.getBlockPos());
         return this.getDefaultState()
                 .with(FACING, facing)
-                .with(OPEN, false)
+                .with(OPEN, powered)
+                .with(POWERED, powered)
                 .with(HINGE, getHinge(ctx, facing))
                 .with(PART, TallDoorPart.BOTTOM);
     }
@@ -231,8 +251,8 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
             if (leftState.isFullCube(world, leftPos)) score--;
             if (rightState.isFullCube(world, rightPos)) score++;
             if (row == 0) {
-                leftIsDoor = leftState.isOf(this);
-                rightIsDoor = rightState.isOf(this);
+                leftIsDoor = isBottomOf(leftState);
+                rightIsDoor = isBottomOf(rightState);
             }
         }
 
@@ -250,6 +270,10 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
             return DoorHinge.LEFT;
         }
         return DoorHinge.RIGHT;
+    }
+
+    private boolean isBottomOf(BlockState state) {
+        return state.isOf(this) && state.get(PART) == TallDoorPart.BOTTOM;
     }
 
     @Override
@@ -312,20 +336,57 @@ public class WCTallDoorBlock extends Block implements WCBlockDef {
 
         boolean targetOpen = !state.get(OPEN);
         BlockPos origin = originPos(pos, state);
+        setOpen(world, origin, targetOpen, player);
+        return ActionResult.CONSUME;
+    }
 
-        // Snap every part to the new OPEN state (NOTIFY_ALL so collision + model
-        // both refresh). Like vanilla, opening is never blocked by the swing path.
+    /**
+     * Snaps every part to {@code open} (NOTIFY_ALL so collision + model both
+     * refresh) and plays the door's open/close sound and game event once, from
+     * the origin cell. Like vanilla, opening is never blocked by the swing path.
+     */
+    private void setOpen(World world, BlockPos origin, boolean open, PlayerEntity player) {
         forEachPart(origin, (part, partPos) -> {
             BlockState partState = world.getBlockState(partPos);
-            if (partState.isOf(this)) {
-                world.setBlockState(partPos, partState.with(OPEN, targetOpen), Block.NOTIFY_ALL);
+            if (partState.isOf(this) && partState.get(OPEN) != open) {
+                world.setBlockState(partPos, partState.with(OPEN, open), Block.NOTIFY_ALL);
             }
         });
 
         world.playSound(null, origin,
-                targetOpen ? SoundEvents.BLOCK_WOODEN_DOOR_OPEN : SoundEvents.BLOCK_WOODEN_DOOR_CLOSE,
+                open ? this.blockSetType.doorOpen() : this.blockSetType.doorClose(),
                 SoundCategory.BLOCKS, 1.0F, world.getRandom().nextFloat() * 0.1F + 0.9F);
-        return ActionResult.CONSUME;
+        world.emitGameEvent(player, open ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, origin);
+    }
+
+    /** True if any of the door's three cells is receiving redstone power. */
+    private static boolean isReceivingPower(World world, BlockPos origin) {
+        return anyPart(origin, (part, partPos) -> world.isReceivingRedstonePower(partPos));
+    }
+
+    // Redstone drives the whole 1x3 door as one unit: any part seeing a change
+    // re-reads power over all three cells and moves them together, so the door
+    // never ends up half open. Matches vanilla DoorBlock's POWERED handling.
+    @Override
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos,
+                               boolean notify) {
+        if (world.isClient() || this.getDefaultState().isOf(sourceBlock)) {
+            return;
+        }
+        BlockPos origin = originPos(pos, state);
+        boolean powered = isReceivingPower(world, origin);
+        if (powered == state.get(POWERED)) {
+            return;
+        }
+        if (powered != state.get(OPEN)) {
+            setOpen(world, origin, powered, null);
+        }
+        forEachPart(origin, (part, partPos) -> {
+            BlockState partState = world.getBlockState(partPos);
+            if (partState.isOf(this)) {
+                world.setBlockState(partPos, partState.with(POWERED, powered), Block.NOTIFY_LISTENERS);
+            }
+        });
     }
 
     @Override
