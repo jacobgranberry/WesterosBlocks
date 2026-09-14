@@ -2000,6 +2000,34 @@
             }
         },
         {
+            "blockName": "small_ceramic_jar",
+            "blockType": "cuboid-16way",
+            "strength": 3,
+            "soundGroup": "pot",
+            "harvestLevel": [
+                {
+                    "tool": "axe",
+                    "level": 1
+                }
+            ],
+            "creativeTab": "westeros_decor_tab",
+            "label": "Small Ceramic Jar",
+            "renderLayer": "cutout",
+            "options": {
+                "toggleOnUse": true
+            },
+            "nonOpaque": true,
+            "isCustomModel": true,
+            "boundingBox": {
+                "xMin": 0.3125,
+                "xMax": 0.6875,
+                "yMin": 0,
+                "yMax": 0.5,
+                "zMin": 0.3125,
+                "zMax": 0.6875
+            }
+        },
+        {
             "blockName": "bones",
             "blockType": "cuboid-ne",
             "strength": 5,
