@@ -38124,6 +38124,20 @@
             "isCustomModel": true
         },
         {
+            "blockName": "jungle_ladder",
+            "blockType": "oriented_ladder",
+            "soundGroup": "ladder",
+            "mapColor": "TERRACOTTA_BROWN",
+            "creativeTab": "westeros_decor_tab",
+            "label": "Jungle Ladder",
+            "options": {
+                "allowUnsupported": true,
+                "toggleOnUse": true
+            },
+            "renderLayer": "cutout",
+            "isCustomModel": true
+        },
+        {
             "blockName": "northern_ladder",
             "blockType": "oriented_ladder",
             "soundGroup": "ladder",
