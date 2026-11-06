@@ -1,5 +1,7 @@
 package com.westerosblocks;
 
+import com.westerosblocks.block.BlockTypes;
+import com.westerosblocks.block.BlockType;
 import com.westerosblocks.block.blockentity.ModBlockEntities;
 import com.westerosblocks.block.blockentity.client.WCBigDoorBlockEntityRenderer;
 import com.westerosblocks.block.blockentity.custom.WCBigDoorBlockEntity;
@@ -60,7 +62,7 @@ public class WesterosBlocksClient implements ClientModInitializer {
             return;
         }
 
-        for (BlockDefinition definition : registry.getByType("bigdoor")) {
+        for (BlockDefinition definition : registry.getByType(BlockTypes.BIG_DOOR.id())) {
             BlockEntityType<?> type = ModBlockEntities.getBlockEntityType(definition.getBlockName());
             if (type != null) {
                 BlockEntityRendererFactories.register(
@@ -96,18 +98,12 @@ public class WesterosBlocksClient implements ClientModInitializer {
                 Registries.BLOCK.getOrEmpty(blockId)
                         .ifPresent(block -> BlockRenderLayerMap.INSTANCE.putBlock(block, layer));
 
-                // For torch and fan blocks, also apply render layer to wall variant
-                if ("torch".equals(definition.getBlockType()) || "fan".equals(definition.getBlockType())) {
-                    Identifier wallId = WesterosBlocks.id("wall_" + definition.getBlockName());
-                    Registries.BLOCK.getOrEmpty(wallId)
-                            .ifPresent(wallBlock -> BlockRenderLayerMap.INSTANCE.putBlock(wallBlock, layer));
-                }
-
-                // For bunting blocks, also apply render layer to ceiling variant
-                if ("bunting".equals(definition.getBlockType())) {
-                    Identifier ceilingId = WesterosBlocks.id(definition.getBlockName() + "_ceiling");
-                    Registries.BLOCK.getOrEmpty(ceilingId)
-                            .ifPresent(ceilingBlock -> BlockRenderLayerMap.INSTANCE.putBlock(ceilingBlock, layer));
+                // Companion blocks (wall torches and fans, ceiling buntings) render like their block
+                BlockType type = BlockTypes.of(definition);
+                String companion = type == null ? null : type.companionName(definition.getBlockName());
+                if (companion != null) {
+                    Registries.BLOCK.getOrEmpty(WesterosBlocks.id(companion))
+                            .ifPresent(companionBlock -> BlockRenderLayerMap.INSTANCE.putBlock(companionBlock, layer));
                 }
             }
         }

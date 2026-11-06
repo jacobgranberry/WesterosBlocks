@@ -1,6 +1,8 @@
 package com.westerosblocks.datagen.providers;
 
 import com.westerosblocks.WesterosBlocks;
+import com.westerosblocks.block.BlockType;
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.block.ModBlocks;
 
 import com.westerosblocks.data.BlockDefinition;
@@ -32,61 +34,71 @@ public class ModModelProvider extends FabricModelProvider {
      * to the Fabric-idiomatic split, add an entry here and remove the item-model upload
      * from the exporter's block-pass method.
      */
-    private static final Map<String, ItemModelExporter> ITEM_EXPORTERS = Map.ofEntries(
-        Map.entry("halfdoor", HalfDoorBlockExporter::registerCustomHalfDoorItemModel)
+    private static final Map<BlockType, ItemModelExporter> ITEM_EXPORTERS = Map.ofEntries(
+        Map.entry(BlockTypes.HALF_DOOR, HalfDoorBlockExporter::registerCustomHalfDoorItemModel)
     );
 
-    private static final Map<String, BlockExporter> EXPORTERS = Map.ofEntries(
-        Map.entry("solid", SolidBlockExporter::registerCustomSolidBlock),
-        Map.entry("sand", SolidBlockExporter::registerCustomSolidBlock),
-        Map.entry("soul-sand", SolidBlockExporter::registerCustomSolidBlock),
-        Map.entry("door", DoorBlockExporter::registerCustomDoorBlock),
-        Map.entry("trapdoor", TrapDoorBlockExporter::registerCustomTrapDoorBlock),
-        Map.entry("log", LogBlockExporter::registerCustomLogBlock),
-        Map.entry("flowerpot", FlowerPotBlockExporter::registerCustomFlowerPotBlock),
-        Map.entry("web", CrossBlockExporter::registerCustomCrossBlock),
-        Map.entry("plant", CrossBlockExporter::registerCustomCrossBlock),
-        Map.entry("slab", SlabBlockExporter::registerCustomSlabBlock),
-        Map.entry("halfdoor", HalfDoorBlockExporter::registerCustomHalfDoorBlock),
-        Map.entry("fire", FireBlockExporter::registerCustomFireBlock),
-        Map.entry("ladder", LadderBlockExporter::registerCustomLadderBlock),
-        Map.entry("oriented_ladder", OrientedLadderBlockExporter::registerCustomOrientedLadderBlock),
-        Map.entry("vines", VinesBlockExporter::registerCustomVinesBlock),
-        Map.entry("pane", PaneBlockExporter::registerCustomPaneBlock),
-        Map.entry("fence", FenceBlockExporter::registerCustomFenceBlock),
-        Map.entry("fencegate", FenceGateBlockExporter::registerCustomFenceGateBlock),
-        Map.entry("leaves", LeavesBlockExporter::registerCustomLeavesBlock),
-        Map.entry("bed", BedBlockExporter::registerCustomBedBlock),
-        Map.entry("table", TableBlockExporter::registerCustomTableBlock),
-        Map.entry("bench", BenchBlockExporter::registerCustomBenchBlock),
-        Map.entry("crop", CropBlockExporter::registerCustomCropBlock),
-        Map.entry("torch", TorchBlockExporter::registerTorchBlockFromDefinition),
-        Map.entry("fan", FanBlockExporter::registerFanBlockFromDefinition),
-        Map.entry("rail", RailBlockExporter::registerRailBlockFromDefinition),
-        Map.entry("furnace", FurnaceBlockExporter::registerCustomFurnaceBlock),
-        Map.entry("wall", WallBlockExporter::registerCustomWallBlock),
-        Map.entry("cuboid", CuboidBlockExporter::registerCustomCuboidBlock),
-        Map.entry("beacon", CuboidBlockExporter::registerCustomCuboidBlock),
-        Map.entry("cuboid-nsew", CuboidNSEWBlockExporter::registerCustomCuboidNSEWBlock),
-        Map.entry("cuboid-nsew-stack", CuboidNSEWStackBlockExporter::registerCustomCuboidNSEWStackBlock),
-        Map.entry("cuboid-ne", CuboidNEBlockExporter::registerCustomCuboidNEBlock),
-        Map.entry("cuboid-nsewud", CuboidNSEWUDBlockExporter::registerCustomCuboidNSEWUDBlock),
-        Map.entry("cuboid-16way", Cuboid16WayBlockExporter::registerCustomCuboid16WayBlock),
-        Map.entry("stair", StairBlockExporter::registerCustomStairBlock),
-        Map.entry("layer", LayerBlockExporter::registerCustomLayerBlock),
-        Map.entry("particle", ParticleEmitterExporter::registerCustomParticleEmitterBlock),
-        Map.entry("chair", ChairBlockExporter::registerChairBlock),
-        Map.entry("mounted", MountedBlockExporter::registerMountedBlock),
-        Map.entry("mounted_slab", MountedSlabBlockExporter::registerMountedSlabBlock),
-        Map.entry("flowerbed", FlowerbedBlockExporter::registerCustomFlowerbedBlock),
-        Map.entry("awning", AwningBlockExporter::registerCustomAwningBlock),
-        Map.entry("bigdoor", BigDoorBlockExporter::registerCustomBigDoorBlock),
-        Map.entry("talldoor", TallDoorBlockExporter::registerCustomTallDoorBlock),
-        Map.entry("bunting", BuntingBlockExporter::registerBuntingBlock),
-        Map.entry("balcony", BalconyBlockExporter::registerCustomBalconyBlock),
-        Map.entry("arrow-slit", ArrowSlitBlockExporter::registerCustomArrowSlitBlock),
-        Map.entry("mounted_mirror", MountedMirrorBlockExporter::registerMountedMirrorBlock)
+    private static final Map<BlockType, BlockExporter> EXPORTERS = Map.ofEntries(
+        Map.entry(BlockTypes.SOLID, SolidBlockExporter::registerCustomSolidBlock),
+        Map.entry(BlockTypes.SAND, SolidBlockExporter::registerCustomSolidBlock),
+        Map.entry(BlockTypes.SOUL_SAND, SolidBlockExporter::registerCustomSolidBlock),
+        Map.entry(BlockTypes.DOOR, DoorBlockExporter::registerCustomDoorBlock),
+        Map.entry(BlockTypes.TRAPDOOR, TrapDoorBlockExporter::registerCustomTrapDoorBlock),
+        Map.entry(BlockTypes.LOG, LogBlockExporter::registerCustomLogBlock),
+        Map.entry(BlockTypes.FLOWER_POT, FlowerPotBlockExporter::registerCustomFlowerPotBlock),
+        Map.entry(BlockTypes.WEB, CrossBlockExporter::registerCustomCrossBlock),
+        Map.entry(BlockTypes.PLANT, CrossBlockExporter::registerCustomCrossBlock),
+        Map.entry(BlockTypes.SLAB, SlabBlockExporter::registerCustomSlabBlock),
+        Map.entry(BlockTypes.HALF_DOOR, HalfDoorBlockExporter::registerCustomHalfDoorBlock),
+        Map.entry(BlockTypes.FIRE, FireBlockExporter::registerCustomFireBlock),
+        Map.entry(BlockTypes.LADDER, LadderBlockExporter::registerCustomLadderBlock),
+        Map.entry(BlockTypes.ORIENTED_LADDER, OrientedLadderBlockExporter::registerCustomOrientedLadderBlock),
+        Map.entry(BlockTypes.VINES, VinesBlockExporter::registerCustomVinesBlock),
+        Map.entry(BlockTypes.PANE, PaneBlockExporter::registerCustomPaneBlock),
+        Map.entry(BlockTypes.FENCE, FenceBlockExporter::registerCustomFenceBlock),
+        Map.entry(BlockTypes.FENCE_GATE, FenceGateBlockExporter::registerCustomFenceGateBlock),
+        Map.entry(BlockTypes.LEAVES, LeavesBlockExporter::registerCustomLeavesBlock),
+        Map.entry(BlockTypes.BED, BedBlockExporter::registerCustomBedBlock),
+        Map.entry(BlockTypes.TABLE, TableBlockExporter::registerCustomTableBlock),
+        Map.entry(BlockTypes.BENCH, BenchBlockExporter::registerCustomBenchBlock),
+        Map.entry(BlockTypes.CROP, CropBlockExporter::registerCustomCropBlock),
+        Map.entry(BlockTypes.TORCH, TorchBlockExporter::registerTorchBlockFromDefinition),
+        Map.entry(BlockTypes.FAN, FanBlockExporter::registerFanBlockFromDefinition),
+        Map.entry(BlockTypes.RAIL, RailBlockExporter::registerRailBlockFromDefinition),
+        Map.entry(BlockTypes.FURNACE, FurnaceBlockExporter::registerCustomFurnaceBlock),
+        Map.entry(BlockTypes.WALL, WallBlockExporter::registerCustomWallBlock),
+        Map.entry(BlockTypes.CUBOID, CuboidBlockExporter::registerCustomCuboidBlock),
+        Map.entry(BlockTypes.BEACON, CuboidBlockExporter::registerCustomCuboidBlock),
+        Map.entry(BlockTypes.CUBOID_NSEW, CuboidNSEWBlockExporter::registerCustomCuboidNSEWBlock),
+        Map.entry(BlockTypes.CUBOID_NSEW_STACK, CuboidNSEWStackBlockExporter::registerCustomCuboidNSEWStackBlock),
+        Map.entry(BlockTypes.CUBOID_NE, CuboidNEBlockExporter::registerCustomCuboidNEBlock),
+        Map.entry(BlockTypes.CUBOID_NSEWUD, CuboidNSEWUDBlockExporter::registerCustomCuboidNSEWUDBlock),
+        Map.entry(BlockTypes.CUBOID_16WAY, Cuboid16WayBlockExporter::registerCustomCuboid16WayBlock),
+        Map.entry(BlockTypes.STAIR, StairBlockExporter::registerCustomStairBlock),
+        Map.entry(BlockTypes.LAYER, LayerBlockExporter::registerCustomLayerBlock),
+        Map.entry(BlockTypes.PARTICLE, ParticleEmitterExporter::registerCustomParticleEmitterBlock),
+        Map.entry(BlockTypes.CHAIR, ChairBlockExporter::registerChairBlock),
+        Map.entry(BlockTypes.MOUNTED, MountedBlockExporter::registerMountedBlock),
+        Map.entry(BlockTypes.MOUNTED_SLAB, MountedSlabBlockExporter::registerMountedSlabBlock),
+        Map.entry(BlockTypes.FLOWERBED, FlowerbedBlockExporter::registerCustomFlowerbedBlock),
+        Map.entry(BlockTypes.AWNING, AwningBlockExporter::registerCustomAwningBlock),
+        Map.entry(BlockTypes.BIG_DOOR, BigDoorBlockExporter::registerCustomBigDoorBlock),
+        Map.entry(BlockTypes.TALL_DOOR, TallDoorBlockExporter::registerCustomTallDoorBlock),
+        Map.entry(BlockTypes.BUNTING, BuntingBlockExporter::registerBuntingBlock),
+        Map.entry(BlockTypes.BALCONY, BalconyBlockExporter::registerCustomBalconyBlock),
+        Map.entry(BlockTypes.ARROW_SLIT, ArrowSlitBlockExporter::registerCustomArrowSlitBlock),
+        Map.entry(BlockTypes.MOUNTED_MIRROR, MountedMirrorBlockExporter::registerMountedMirrorBlock)
     );
+
+    static {
+        // Every block type needs a model exporter; fail datagen loudly instead of silently
+        // shipping blocks without blockstates.
+        for (BlockType type : BlockTypes.all()) {
+            if (!EXPORTERS.containsKey(type)) {
+                throw new IllegalStateException("No model exporter for block type '" + type.id() + "'");
+            }
+        }
+    }
 
     private final FabricDataOutput output;
 
@@ -120,7 +132,8 @@ public class ModModelProvider extends FabricModelProvider {
      * Generates models for a block from its definition using the appropriate exporter
      */
     private void generateModelFromDefinition(BlockStateModelGenerator bsmg, Block block, BlockDefinition definition) {
-        BlockExporter exporter = EXPORTERS.get(definition.getBlockType().toLowerCase());
+        BlockType type = BlockTypes.of(definition);
+        BlockExporter exporter = type == null ? null : EXPORTERS.get(type);
         if (exporter != null) {
             try {
                 exporter.export(bsmg, block, definition);
@@ -145,7 +158,8 @@ public class ModModelProvider extends FabricModelProvider {
             Block block = ModBlocks.getAutoRegisteredBlock(definition.getBlockName());
             if (block == null) continue;
 
-            ItemModelExporter exporter = ITEM_EXPORTERS.get(definition.getBlockType().toLowerCase());
+            BlockType type = BlockTypes.of(definition);
+            ItemModelExporter exporter = type == null ? null : ITEM_EXPORTERS.get(type);
             if (exporter == null) continue;
 
             try {

@@ -23,58 +23,6 @@ import java.util.Map;
 public class ModBlocks {
     private static final Map<String, Block> AUTO_REGISTERED_BLOCKS = new HashMap<>();
 
-    private static final Map<String, BlockFactory> FACTORIES = Map.ofEntries(
-        Map.entry("solid", new WCSolidBlock.Factory()),
-        Map.entry("door", new WCDoorBlock.Factory()),
-        Map.entry("halfdoor", new WCHalfDoorBlock.Factory()),
-        Map.entry("log", new WCLogBlock.Factory()),
-        Map.entry("plant", new WCPlantBlock.Factory()),
-        Map.entry("flowerpot", new WCFlowerPotBlock.Factory()),
-        Map.entry("web", new WCWebBlock.Factory()),
-        Map.entry("slab", new WCSlabBlock.Factory()),
-        Map.entry("fire", new WCFireBlock.Factory()),
-        Map.entry("ladder", new WCLadderBlock.Factory()),
-        Map.entry("oriented_ladder", new WCOrientedLadderBlock.Factory()),
-        Map.entry("vines", new WCVinesBlock.Factory()),
-        Map.entry("pane", new WCPaneBlock.Factory()),
-        Map.entry("fence", new WCFenceBlock.Factory()),
-        Map.entry("fencegate", new WCFenceGateBlock.Factory()),
-        Map.entry("trapdoor", new WCTrapDoorBlock.Factory()),
-        Map.entry("leaves", new WCLeavesBlock.Factory()),
-        Map.entry("bed", new WCBedBlock.Factory()),
-        Map.entry("crop", new WCCropBlock.Factory()),
-        Map.entry("torch", new WCTorchBlock.Factory()),
-        Map.entry("fan", new WCFanBlock.Factory()),
-        Map.entry("rail", new WCRailBlock.Factory()),
-        Map.entry("furnace", new WCFurnaceBlock.Factory()),
-        Map.entry("wall", new WCWallBlock.Factory()),
-        Map.entry("stair", new WCStairBlock.Factory()),
-        Map.entry("cuboid", new WCCuboidBlock.Factory()),
-        Map.entry("cuboid-nsew", new WCCuboidNSEWBlock.Factory()),
-        Map.entry("cuboid-nsew-stack", new WCCuboidNSEWStackBlock.Factory()),
-        Map.entry("cuboid-ne", new WCCuboidNEBlock.Factory()),
-        Map.entry("cuboid-nsewud", new WCCuboidNSEWUDBlock.Factory()),
-        Map.entry("cuboid-16way", new WCCuboid16WayBlock.Factory()),
-        Map.entry("layer", new WCLayerBlock.Factory()),
-        Map.entry("beacon", new WCBeaconBlock.Factory()),
-        Map.entry("sand", new WCSandBlock.Factory()),
-        Map.entry("soul-sand", new WCSoulSandBlock.Factory()),
-        Map.entry("particle", new WCParticleEmitterBlock.Factory()),
-        Map.entry("table", new WCTableBlock.Factory()),
-        Map.entry("chair", new WCChairBlock.Factory()),
-        Map.entry("bench", new WCBenchBlock.Factory()),
-        Map.entry("arrow-slit", new WCArrowSlitBlock.Factory()),
-        Map.entry("flowerbed", new WCFlowerbedBlock.Factory()),
-        Map.entry("mounted", new WCMountedBlock.Factory()),
-        Map.entry("mounted_slab", new WCMountedSlabBlock.Factory()),
-        Map.entry("awning", new WCAwningBlock.Factory()),
-        Map.entry("bigdoor", new WCBigDoorBlock.Factory()),
-        Map.entry("talldoor", new WCTallDoorBlock.Factory()),
-        Map.entry("bunting", new WCBuntingBlock.Factory()),
-        Map.entry("balcony", new WCBalconyBlock.Factory()),
-        Map.entry("mounted_mirror", new WCMountedMirrorBlock.Factory())
-    );
-
     private static void registerBlocksFromDefinitions() {
         try {
             BlockDefinitionRegistry registry = BlockDefinitionRegistry.getInstance();
@@ -128,26 +76,17 @@ public class ModBlocks {
     }
 
     /**
-     * Returns the appropriate BlockFactory for a given block type
-     */
-    private static BlockFactory getFactory(String blockType) {
-        return FACTORIES.get(blockType.toLowerCase());
-    }
-
-    /**
-     * Creates a Block instance from a BlockDefinition by calling factory directly
+     * Creates a Block instance from a BlockDefinition using its {@link BlockType}.
      */
     private static Block createBlockFromDefinition(BlockDefinition definition) {
-        String blockType = definition.getBlockType().toLowerCase();
-
+        BlockType type = BlockTypes.of(definition);
+        if (type == null) {
+            WesterosBlocks.LOGGER.warn("No block type '{}' for block '{}'",
+                    definition.getBlockType(), definition.getBlockName());
+            return null;
+        }
         try {
-            BlockFactory factory = getFactory(blockType);
-            if (factory != null) {
-                return factory.buildBlockClass(definition);
-            } else {
-                WesterosBlocks.LOGGER.warn("No factory found for block type '{}'", blockType);
-                return null;
-            }
+            return type.create(definition);
         } catch (Exception e) {
             WesterosBlocks.LOGGER.error("Error creating block from definition: {}", definition.getBlockName(), e);
             return null;

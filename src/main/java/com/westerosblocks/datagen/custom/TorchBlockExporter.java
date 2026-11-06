@@ -1,5 +1,6 @@
 package com.westerosblocks.datagen.custom;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.data.BlockDefinition;
 import com.westerosblocks.datagen.ModModels;
@@ -16,7 +17,7 @@ public class TorchBlockExporter extends BaseBlockExporter {
     public static void registerTorchBlockFromDefinition(BlockStateModelGenerator generator,
                                                         Block standingTorch,
                                                         BlockDefinition definition) {
-        Identifier wallTorchId = WesterosBlocks.id("wall_" + definition.getBlockName());
+        Identifier wallTorchId = WesterosBlocks.id(BlockTypes.TORCH.companionName(definition.getBlockName()));
         if (!Registries.BLOCK.containsId(wallTorchId)) {
             WesterosBlocks.LOGGER.warn("Could not find wall torch for: {}", definition.getBlockName());
             return;

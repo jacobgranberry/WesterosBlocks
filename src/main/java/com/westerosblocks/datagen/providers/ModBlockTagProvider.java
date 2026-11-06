@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import com.westerosblocks.block.BlockType;
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.block.ModBlocks;
 
 public class ModBlockTagProvider extends FabricTagProvider<Block> {
@@ -36,29 +38,6 @@ public class ModBlockTagProvider extends FabricTagProvider<Block> {
     @Override
     protected void configure(RegistryWrapper.WrapperLookup wrapperLookup) {
         BlockDefinitionRegistry registry = BlockDefinitionRegistry.getInstance();
-
-        // Initialize all tag builders upfront
-        FabricTagProvider<Block>.FabricTagBuilder doorTagBuilder = getOrCreateTagBuilder(BlockTags.DOORS);
-        FabricTagProvider<Block>.FabricTagBuilder logTagBuilder = getOrCreateTagBuilder(BlockTags.LOGS);
-        FabricTagProvider<Block>.FabricTagBuilder slabTagBuilder = getOrCreateTagBuilder(BlockTags.SLABS);
-        FabricTagProvider<Block>.FabricTagBuilder flowerPotTagBuilder = getOrCreateTagBuilder(BlockTags.FLOWER_POTS);
-        FabricTagProvider<Block>.FabricTagBuilder stairTagBuilder = getOrCreateTagBuilder(BlockTags.STAIRS);
-        FabricTagProvider<Block>.FabricTagBuilder ladderTagBuilder = getOrCreateTagBuilder(BlockTags.CLIMBABLE);
-        FabricTagProvider<Block>.FabricTagBuilder fenceTagBuilder = getOrCreateTagBuilder(BlockTags.FENCES);
-        FabricTagProvider<Block>.FabricTagBuilder woodenFenceTagBuilder = getOrCreateTagBuilder(BlockTags.WOODEN_FENCES);
-        FabricTagProvider<Block>.FabricTagBuilder fenceGateTagBuilder = getOrCreateTagBuilder(BlockTags.FENCE_GATES);
-        FabricTagProvider<Block>.FabricTagBuilder leavesTagBuilder = getOrCreateTagBuilder(BlockTags.LEAVES);
-        FabricTagProvider<Block>.FabricTagBuilder bedTagBuilder = getOrCreateTagBuilder(BlockTags.BEDS);
-        FabricTagProvider<Block>.FabricTagBuilder cropTagBuilder = getOrCreateTagBuilder(BlockTags.CROPS);
-        FabricTagProvider<Block>.FabricTagBuilder trapdoorTagBuilder = getOrCreateTagBuilder(BlockTags.TRAPDOORS);
-        FabricTagProvider<Block>.FabricTagBuilder fireTagBuilder = getOrCreateTagBuilder(BlockTags.FIRE);
-        FabricTagProvider<Block>.FabricTagBuilder flowersTagBuilder = getOrCreateTagBuilder(BlockTags.FLOWERS);
-        FabricTagProvider<Block>.FabricTagBuilder railTagBuilder = getOrCreateTagBuilder(BlockTags.RAILS);
-        FabricTagProvider<Block>.FabricTagBuilder sandTagBuilder = getOrCreateTagBuilder(BlockTags.SAND);
-        FabricTagProvider<Block>.FabricTagBuilder wallPostOverrideBuilder = getOrCreateTagBuilder(BlockTags.WALL_POST_OVERRIDE);
-        FabricTagProvider<Block>.FabricTagBuilder wallTagBuilder = getOrCreateTagBuilder(BlockTags.WALLS);
-        FabricTagProvider<Block>.FabricTagBuilder coralTagBuilder = getOrCreateTagBuilder(BlockTags.CORALS);
-        FabricTagProvider<Block>.FabricTagBuilder wallCoralTagBuilder = getOrCreateTagBuilder(BlockTags.WALL_CORALS);
 
         // Initialize custom tag builders and seed with external block IDs from block_tags.json
         Map<String, FabricTagProvider<Block>.FabricTagBuilder> customTagBuilders = new HashMap<>();
@@ -81,7 +60,6 @@ public class ModBlockTagProvider extends FabricTagProvider<Block> {
                 continue;
             }
 
-            String blockType = definition.getBlockType();
             String blockName = definition.getBlockName();
             Block block = ModBlocks.getAutoRegisteredBlock(blockName);
 
@@ -90,120 +68,28 @@ public class ModBlockTagProvider extends FabricTagProvider<Block> {
                 continue;
             }
 
-            // Add to appropriate tag(s) based on block type
-            switch (blockType.toLowerCase()) {
-                case "door":
-                case "halfdoor":
-                    doorTagBuilder.add(block);
-                    break;
-
-                case "bigdoor": {
-                    FabricTagProvider<Block>.FabricTagBuilder bigDoorBuilder = customTagBuilders.computeIfAbsent(
-                        "big_door", t -> getOrCreateTagBuilder(TagKey.of(RegistryKeys.BLOCK, WesterosBlocks.id(t)))
-                    );
-                    bigDoorBuilder.add(block);
-                    break;
+            // Tags each block type declares in BlockTypes.
+            BlockType type = BlockTypes.of(definition);
+            if (type != null) {
+                for (BlockType.TagRule rule : type.tagRules()) {
+                    if (!rule.when().test(definition)) {
+                        continue;
+                    }
+                    Block target = block;
+                    if (rule.target() == BlockType.TagTarget.COMPANION) {
+                        target = ModBlocks.getAutoRegisteredBlock(type.companionName(blockName));
+                        if (target == null) {
+                            continue;
+                        }
+                    }
+                    getOrCreateTagBuilder(rule.tag()).add(target);
                 }
-
-                case "log":
-                    logTagBuilder.add(block);
-                    break;
-
-                case "slab":
-                    slabTagBuilder.add(block);
-                    break;
-
-                case "flowerpot":
-                    flowerPotTagBuilder.add(block);
-                    break;
-
-                case "stair":
-                    stairTagBuilder.add(block);
-                    break;
-
-                case "ladder":
-                case "oriented_ladder":
-                    // Only add if climbable
-                    if (!definition.isNoClimb()) {
-                        ladderTagBuilder.add(block);
-                    }
-                    break;
-
-                case "fence":
-                    fenceTagBuilder.add(block);
-                    // Also add to wooden fences if it's a wooden sound type
-                    if ("wood".equalsIgnoreCase(definition.getSoundGroup())) {
-                        woodenFenceTagBuilder.add(block);
-                    }
-                    break;
-
-                case "fencegate":
-                    fenceGateTagBuilder.add(block);
-                    break;
-
-                case "leaves":
-                    leavesTagBuilder.add(block);
-                    break;
-
-                case "bed":
-                    bedTagBuilder.add(block);
-                    break;
-
-                case "crop":
-                    cropTagBuilder.add(block);
-                    break;
-
-                case "trapdoor":
-                    trapdoorTagBuilder.add(block);
-                    break;
-
-                case "fire":
-                    fireTagBuilder.add(block);
-                    break;
-
-                case "plant":
-                    flowersTagBuilder.add(block);
-                    break;
-
-                case "rail":
-                    railTagBuilder.add(block);
-                    break;
-
-                case "sand":
-                    sandTagBuilder.add(block);
-                    break;
-
-                case "torch":
-                    wallPostOverrideBuilder.add(block);
-                    // Also add the wall variant if it exists
-                    Block wallTorchBlock = ModBlocks.getAutoRegisteredBlock("wall_" + blockName);
-                    if (wallTorchBlock != null) {
-                        wallPostOverrideBuilder.add(wallTorchBlock);
-                    }
-                    break;
-
-                case "wall":
-                    wallTagBuilder.add(block);
-                    break;
-
-                case "fan":
-                    coralTagBuilder.add(block);
-                    // Also add the wall variant if it exists
-                    Block wallFanBlock = ModBlocks.getAutoRegisteredBlock("wall_" + blockName);
-                    if (wallFanBlock != null) {
-                        wallCoralTagBuilder.add(wallFanBlock);
-                    }
-                    break;
-
-                // Other block types don't need tags
-                default:
-                    break;
             }
 
             // Blocks that opt in via the hasClimb option (e.g. steep ladders, which are
             // cuboid-nsew rather than the "ladder" type) join the climbable tag.
             if (definition.hasClimb()) {
-                ladderTagBuilder.add(block);
+                getOrCreateTagBuilder(BlockTags.CLIMBABLE).add(block);
             }
 
             // Add to custom tags declared in block definitions (e.g., polished_stone_ctm, wool_ctm)

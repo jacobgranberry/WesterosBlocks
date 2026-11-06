@@ -1,5 +1,6 @@
 package com.westerosblocks.block.custom;
 
+import com.westerosblocks.block.BlockTypes;
 import com.google.common.collect.ImmutableMap;
 import com.westerosblocks.block.ModBlocks;
 import com.westerosblocks.data.BlockDefinition;
@@ -50,7 +51,7 @@ public class WCBuntingBlock extends Block implements WCBlockDef {
             Block ceilingBlock = new WCCeilingBuntingBlock(ceilingSettings, definition, ceilingShape, allowUnsupported);
 
             // Register ceiling block without item
-            String ceilingName = definition.getBlockName() + "_ceiling";
+            String ceilingName = BlockTypes.BUNTING.companionName(definition.getBlockName());
             Block registeredCeilingBlock = ModBlocks.registerBlockWithoutItem(ceilingName, ceilingBlock);
 
             // Create wall (main) block with reference to ceiling block

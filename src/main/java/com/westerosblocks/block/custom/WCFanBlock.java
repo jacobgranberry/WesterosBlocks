@@ -1,5 +1,6 @@
 package com.westerosblocks.block.custom;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.block.ModBlocks;
 import net.minecraft.block.*;
 import net.minecraft.entity.ai.pathing.NavigationType;
@@ -36,7 +37,7 @@ public class WCFanBlock extends Block implements Waterloggable, WCBlockDef {
             AbstractBlock.Settings wallSettings = definition.makeSettings();
             Block wallBlock = new WCWallFanBlock(wallSettings, definition, allowUnsupported);
 
-            String wallFanName = "wall_" + definition.getBlockName();
+            String wallFanName = BlockTypes.FAN.companionName(definition.getBlockName());
             Block registeredWallBlock = ModBlocks.registerBlockWithoutItem(wallFanName, wallBlock);
 
             AbstractBlock.Settings floorSettings = definition.makeSettings();

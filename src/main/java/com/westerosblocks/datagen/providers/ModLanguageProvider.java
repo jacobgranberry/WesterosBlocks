@@ -1,5 +1,7 @@
 package com.westerosblocks.datagen.providers;
 
+import com.westerosblocks.block.BlockType;
+import com.westerosblocks.block.BlockTypes;
 import java.util.concurrent.CompletableFuture;
 
 import com.westerosblocks.WesterosCreativeModeTabs;
@@ -60,10 +62,11 @@ public class ModLanguageProvider extends FabricLanguageProvider {
                                 String translationKey = "block.westerosblocks." + definition.getBlockName();
                                 translationBuilder.add(translationKey, definition.getLabel());
 
-                                // Bunting ceiling blocks share the same label as their wall block
-                                if ("bunting".equals(definition.getBlockType())) {
-                                        String ceilingKey = "block.westerosblocks." + definition.getBlockName() + "_ceiling";
-                                        translationBuilder.add(ceilingKey, definition.getLabel());
+                                // Companion blocks (wall torches and fans, ceiling buntings) share the label of their block
+                                BlockType type = BlockTypes.of(definition);
+                                String companion = type == null ? null : type.companionName(definition.getBlockName());
+                                if (companion != null) {
+                                        translationBuilder.add("block.westerosblocks." + companion, definition.getLabel());
                                 }
                         }
 
