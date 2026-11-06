@@ -41,9 +41,7 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
 
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
-    // STATE property (left/right). Uses the temp* pattern because appendProperties()
-    // runs from the super constructor before the subclass body.
-    protected static ModProperties.StateProperty tempSTATE;
+    // STATE property (left/right), handed over through StagedProperties.
     public ModProperties.StateProperty STATE;
 
     // Key used for the shape map when the block has no STATE property.
@@ -75,14 +73,12 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
 
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
             Map<String, Map<Direction, VoxelShape>> shapes = createRotatedShapes(definition);
             boolean allowUnsupported = definition.isAllowUnsupported();
             boolean toggleOnUse = definition.toggleOnUse();
-            return new WCMountedMirrorBlock(settings, definition, shapes, allowUnsupported, toggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .construct(() -> new WCMountedMirrorBlock(settings, definition, shapes, allowUnsupported, toggleOnUse));
         }
 
         /**
@@ -162,21 +158,15 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(FACING);
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            builder.add(STATE);
-            tempSTATE = null;
-        }
+        STATE = StagedProperties.appendTo(builder).state();
     }
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (this.STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
         return ActionResult.PASS;

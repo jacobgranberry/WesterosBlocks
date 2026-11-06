@@ -16,7 +16,6 @@ import com.westerosblocks.data.BlockDefinition;
 public class WCPaneBlock extends PaneBlock implements WCBlockDef {
     protected BlockDefinition def;
     public static final BooleanProperty UNCONNECT = BooleanProperty.of("unconnect");
-    protected static BooleanProperty tempUNCONNECT;
 
     private boolean legacy_model;
     private boolean bars_model;
@@ -30,11 +29,9 @@ public class WCPaneBlock extends PaneBlock implements WCBlockDef {
             boolean legacy_model = definition.isLegacyModel();
             boolean bars_model = definition.isBarsModel();
 
-            if (doUnconnect) {
-                tempUNCONNECT = UNCONNECT;
-            }
-
-            return new WCPaneBlock(settings, definition, doUnconnect, legacy_model, bars_model);
+            return StagedProperties.builder()
+                    .addIf(doUnconnect, UNCONNECT)
+                    .construct(() -> new WCPaneBlock(settings, definition, doUnconnect, legacy_model, bars_model));
         }
     }
 
@@ -58,10 +55,7 @@ public class WCPaneBlock extends PaneBlock implements WCBlockDef {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        if (tempUNCONNECT != null) {
-            builder.add(tempUNCONNECT);
-            tempUNCONNECT = null;
-        }
+        StagedProperties.appendTo(builder);
         super.appendProperties(builder);
     }
 

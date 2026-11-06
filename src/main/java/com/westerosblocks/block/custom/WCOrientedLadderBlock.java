@@ -151,12 +151,7 @@ public class WCOrientedLadderBlock extends Block implements WCBlockDef, Waterlog
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && player.isCreative() && player.getMainHandStack().isEmpty() && state.contains(ROTATED)) {
-            world.setBlockState(pos, state.cycle(ROTATED), Block.NOTIFY_ALL);
-            world.syncWorldEvent(player, 1006, pos, 0);
-            return ActionResult.success(world.isClient);
-        }
-        return ActionResult.PASS;
+        return this.toggleOnUse ? CreativeToggle.cycle(state, world, pos, player, ROTATED) : ActionResult.PASS;
     }
 
     @Override

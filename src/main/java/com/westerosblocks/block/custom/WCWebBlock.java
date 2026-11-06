@@ -36,10 +36,8 @@ public class WCWebBlock extends CobwebBlock implements WCBlockDef {
     protected BlockDefinition def;
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
-    protected static IntProperty tempLAYERS;
     public IntProperty LAYERS;
 
-    protected static ModProperties.StateProperty tempSTATE;
     public ModProperties.StateProperty STATE;
 
     protected boolean toggleOnUse = false;
@@ -62,29 +60,18 @@ public class WCWebBlock extends CobwebBlock implements WCBlockDef {
     public static class Factory extends BlockFactory {
         @Override
         public Block buildBlockClass(BlockDefinition definition) {
-            AbstractBlock.Settings settings = definition.makeSettings();
+            // Web blocks never collide.
+            AbstractBlock.Settings settings = definition.makeSettings().noCollision();
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
 
             boolean doToggleOnUse = definition.toggleOnUse();
             boolean doNoInWeb = definition.isNoInWeb();
             boolean doLayerSensitive = definition.isLayerSensitive();
 
-            // Reset static fields before setting them (prevent leakage between blocks)
-            tempLAYERS = null;
-            tempSTATE = null;
-
-            if (doLayerSensitive) {
-                tempLAYERS = Properties.LAYERS;
-            }
-
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
-            // Apply noCollision for web blocks
-            settings = settings.noCollision();
-
-            return new WCWebBlock(settings, definition, doToggleOnUse, doNoInWeb, doLayerSensitive);
+            return StagedProperties.builder()
+                    .addIf(doLayerSensitive, Properties.LAYERS)
+                    .state(stateProperty)
+                    .construct(() -> new WCWebBlock(settings, definition, doToggleOnUse, doNoInWeb, doLayerSensitive));
         }
     }
 
@@ -114,18 +101,9 @@ public class WCWebBlock extends CobwebBlock implements WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(WATERLOGGED);
-        
-        if (tempLAYERS != null) {
-            LAYERS = tempLAYERS;
-            tempLAYERS = null;
-            builder.add(LAYERS);
-        }
-        
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            builder.add(tempSTATE);
-            tempSTATE = null;
-        }
+        StagedProperties staged = StagedProperties.appendTo(builder);
+        LAYERS = staged.has(Properties.LAYERS) ? Properties.LAYERS : null;
+        STATE = staged.state();
         
         super.appendProperties(builder);
     }
@@ -200,12 +178,10 @@ public class WCWebBlock extends CobwebBlock implements WCBlockDef {
     
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && STATE != null && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(STATE)) {
-                state = state.cycle(STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
         return ActionResult.PASS;

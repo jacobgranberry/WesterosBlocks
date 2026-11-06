@@ -38,9 +38,9 @@ public class WCCuboid16WayBlock extends WCCuboidBlock {
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
             boolean doToggleOnUse = definition.toggleOnUse();
 
-            tempSTATE = stateProperty;
-
-            return new WCCuboid16WayBlock(settings, definition, doToggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .construct(() -> new WCCuboid16WayBlock(settings, definition, doToggleOnUse));
         }
     }
 
@@ -122,27 +122,15 @@ public class WCCuboid16WayBlock extends WCCuboidBlock {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        // If toggle on use is enabled and player is in creative mode with empty hand
-        if (this.toggleOnUse && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            // First priority: cycle through states if STATE property exists
-            if (this.STATE != null && state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
-            }
-
-            else if (state.contains(ROTATION)) {
-                int currentRotation = state.get(ROTATION);
-                int newRotation = (currentRotation + 1) & 15;
-                state = state.with(ROTATION, newRotation);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
-            }
+        if (!this.toggleOnUse) {
+            return ActionResult.PASS;
         }
-
-        return ActionResult.PASS;
+        // Cycle the definition's states first; blocks without states rotate instead.
+        ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+        if (toggled != ActionResult.PASS) {
+            return toggled;
+        }
+        return CreativeToggle.cycle(state, world, pos, player, ROTATION);
     }
 
     @Override

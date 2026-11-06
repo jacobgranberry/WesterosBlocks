@@ -37,7 +37,6 @@ public class WCBalconyBlock extends Block implements Waterloggable, WCBlockDef {
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
     public static final BooleanProperty WALL = BooleanProperty.of("wall");
 
-    protected static ModProperties.StateProperty tempSTATE;
     public ModProperties.StateProperty STATE;
     protected boolean toggleOnUse = false;
 
@@ -70,9 +69,9 @@ public class WCBalconyBlock extends Block implements Waterloggable, WCBlockDef {
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
             boolean doToggleOnUse = definition.toggleOnUse();
 
-            tempSTATE = stateProperty;
-
-            return new WCBalconyBlock(settings, definition, doToggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .construct(() -> new WCBalconyBlock(settings, definition, doToggleOnUse));
         }
     }
 
@@ -97,11 +96,7 @@ public class WCBalconyBlock extends Block implements Waterloggable, WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(NORTH, SOUTH, EAST, WEST, WALL, WATERLOGGED);
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            tempSTATE = null;
-            builder.add(STATE);
-        }
+        STATE = StagedProperties.appendTo(builder).state();
     }
 
     @Override
@@ -141,12 +136,10 @@ public class WCBalconyBlock extends Block implements Waterloggable, WCBlockDef {
         ItemStack heldItem = player.getMainHandStack();
 
         // Toggle STATE when creative + empty hand
-        if (this.toggleOnUse && (this.STATE != null) && player.isCreative() && heldItem.isEmpty()) {
-            if (state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
 

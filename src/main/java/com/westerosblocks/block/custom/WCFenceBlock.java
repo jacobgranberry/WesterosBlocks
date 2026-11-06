@@ -26,8 +26,6 @@ public class WCFenceBlock extends FenceBlock implements WCBlockDef {
     protected BlockDefinition def;
 
     public static final BooleanProperty UNCONNECT = BooleanProperty.of("unconnect");
-    protected static BooleanProperty tempUNCONNECT;
-    protected static ModProperties.StateProperty tempSTATE;
 
     private final boolean unconnect;
     private final boolean unconnectDefault;
@@ -44,15 +42,10 @@ public class WCFenceBlock extends FenceBlock implements WCBlockDef {
             boolean unconnectDefault = definition.getUnconnectDefault();
             boolean toggleOnUse = definition.toggleOnUse();
 
-            if (unconnect) {
-                tempUNCONNECT = UNCONNECT;
-            }
-
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
-            return new WCFenceBlock(settings, definition, unconnect, unconnectDefault, toggleOnUse);
+            return StagedProperties.builder()
+                    .addIf(unconnect, UNCONNECT)
+                    .state(stateProperty)
+                    .construct(() -> new WCFenceBlock(settings, definition, unconnect, unconnectDefault, toggleOnUse));
         }
     }
 
@@ -83,17 +76,7 @@ public class WCFenceBlock extends FenceBlock implements WCBlockDef {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        if (tempUNCONNECT != null) {
-            builder.add(tempUNCONNECT);
-            tempUNCONNECT = null;
-        }
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            tempSTATE = null;
-        }
-        if (STATE != null) {
-            builder.add(STATE);
-        }
+        STATE = StagedProperties.appendTo(builder).state();
         super.appendProperties(builder);
     }
 
@@ -137,12 +120,10 @@ public class WCFenceBlock extends FenceBlock implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (this.STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
         return ActionResult.PASS;
