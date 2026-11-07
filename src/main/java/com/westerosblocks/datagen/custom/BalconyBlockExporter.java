@@ -27,37 +27,31 @@ public class BalconyBlockExporter extends BaseBlockExporter {
             List<Identifier> sideModelIds, List<Identifier> wallModelIds, List<Integer> weights) {
         MultipartBlockStateSupplier supplier = MultipartBlockStateSupplier.create(block);
 
-        for (int i = 0; i < sideModelIds.size(); i++) {
-            // Normal variants (wall=false)
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.NORTH, false);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.EAST, false);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.SOUTH, false);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.WEST, false);
-
-            // Wall variants (wall=true)
-            addSideVariant(supplier, wallModelIds.get(i), weights.get(i), Direction.NORTH, true);
-            addSideVariant(supplier, wallModelIds.get(i), weights.get(i), Direction.EAST, true);
-            addSideVariant(supplier, wallModelIds.get(i), weights.get(i), Direction.SOUTH, true);
-            addSideVariant(supplier, wallModelIds.get(i), weights.get(i), Direction.WEST, true);
+        // One entry per part, with the texture sets as its weighted random choices
+        List<TextureSetVariants.Choice> sides = choices(sideModelIds, weights);
+        List<TextureSetVariants.Choice> walls = choices(wallModelIds, weights);
+        for (Direction direction : new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            addSideVariant(supplier, sides, direction, false);
+        }
+        for (Direction direction : new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            addSideVariant(supplier, walls, direction, true);
         }
 
         return supplier;
     }
 
-    private static void addSideVariant(MultipartBlockStateSupplier supplier, Identifier sideModelId,
-                                       int weight, Direction direction, boolean isWall) {
-        BlockStateVariant sideVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, sideModelId)
-                .put(VariantSettings.UVLOCK, true);
-
-        int yRotation = getRotationForDirection(direction);
-        if (yRotation != 0) {
-            sideVariant = sideVariant.put(VariantSettings.Y, toYRotation(yRotation));
+    private static List<TextureSetVariants.Choice> choices(List<Identifier> modelIds, List<Integer> weights) {
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights.get(i)));
         }
+        return choices;
+    }
 
-        if (weight > 1) {
-            sideVariant = sideVariant.put(VariantSettings.WEIGHT, weight);
-        }
+    private static void addSideVariant(MultipartBlockStateSupplier supplier, List<TextureSetVariants.Choice> sides,
+                                       Direction direction, boolean isWall) {
+        List<BlockStateVariant> sideVariants = TextureSetVariants.variants(sides,
+                TextureSetVariants.Transform.y(getRotationForDirection(direction)).withUvlock(true));
 
         When.PropertyCondition condition = When.create();
         switch (direction) {
@@ -68,7 +62,7 @@ public class BalconyBlockExporter extends BaseBlockExporter {
         }
         condition.set(WCBalconyBlock.WALL, isWall);
 
-        supplier.with(condition, sideVariant);
+        supplier.with(condition, sideVariants);
     }
 
     public static void registerBalconyBlock(BlockStateModelGenerator generator, Block block, boolean tinted, String[] textures) {

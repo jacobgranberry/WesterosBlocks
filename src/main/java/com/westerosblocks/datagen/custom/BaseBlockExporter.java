@@ -5,7 +5,6 @@ import net.minecraft.data.client.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
-import net.minecraft.data.client.VariantSettings.Rotation;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.data.BlockDefinition;
 import com.westerosblocks.datagen.ModTextureMap;
@@ -171,11 +170,11 @@ public abstract class BaseBlockExporter {
      * @return The block state variant with MODEL setting
      */
     protected static BlockStateVariant createVariant(Identifier modelId) {
-        return BlockStateVariant.create().put(VariantSettings.MODEL, modelId);
+        return TextureSetVariants.variant(modelId);
     }
 
     /**
-     * Creates a block state variant with Y-axis rotation.
+     * Creates a block state variant with Y-axis rotation (left out when 0).
      * Follows block-models.md section 5.4: Custom BlockStateSupplier Method.
      *
      * @param modelId The model identifier to use for this variant
@@ -184,7 +183,7 @@ public abstract class BaseBlockExporter {
      * @throws IllegalArgumentException if rotation is not 0, 90, 180, or 270
      */
     protected static BlockStateVariant createVariant(Identifier modelId, int rotation) {
-        return BlockStateVariant.create().put(VariantSettings.MODEL, modelId).put(VariantSettings.Y, toYRotation(rotation));
+        return TextureSetVariants.variant(modelId, TextureSetVariants.Transform.y(rotation));
     }
 
     /**
@@ -232,41 +231,6 @@ public abstract class BaseBlockExporter {
 
 
     /**
-     * Creates a BlockStateVariant with optional weight.
-     * Only adds weight setting if weight > 1.
-     *
-     * @param modelId The model identifier
-     * @param rotation Y-axis rotation (0, 90, 180, 270)
-     * @param weight The variant weight (1 = normal, >1 = higher probability)
-     * @return BlockStateVariant with model, rotation, and optional weight
-     */
-    protected static BlockStateVariant createWeightedVariant(Identifier modelId, int rotation, int weight) {
-        BlockStateVariant variant = createVariant(modelId, rotation);
-        if (weight > 1) {
-            variant = variant.put(VariantSettings.WEIGHT, weight);
-        }
-        return variant;
-    }
-
-    /**
-     * Creates a list of weighted variants from model IDs and weights.
-     * Applies the same rotation to all variants.
-     *
-     * @param modelIds List of model identifiers
-     * @param weights List of weights (must match modelIds size)
-     * @param rotation Y-axis rotation to apply to all variants
-     * @return List of weighted BlockStateVariants
-     */
-    protected static List<BlockStateVariant> createWeightedVariants(List<Identifier> modelIds,
-                                                                     List<Integer> weights, int rotation) {
-        List<BlockStateVariant> variants = new ArrayList<>();
-        for (int i = 0; i < modelIds.size(); i++) {
-            variants.add(createWeightedVariant(modelIds.get(i), rotation, weights.get(i)));
-        }
-        return variants;
-    }
-
-    /**
      * Creates a variant carrying only a Y-axis rotation (no model). Used by exporters that
      * supply the model via a separate blockstate coordinate (e.g. beam, mounted_mirror).
      * The rotation is omitted entirely when {@code rotation == 0}.
@@ -276,7 +240,7 @@ public abstract class BaseBlockExporter {
     protected static BlockStateVariant rotationOnlyVariant(int rotation) {
         BlockStateVariant variant = BlockStateVariant.create();
         if (rotation != 0) {
-            variant.put(VariantSettings.Y, toYRotation(rotation));
+            variant.put(VariantSettings.Y, TextureSetVariants.rotation(rotation));
         }
         return variant;
     }
@@ -289,13 +253,7 @@ public abstract class BaseBlockExporter {
      * @throws IllegalArgumentException if degrees is not 0, 90, 180, or 270
      */
     protected static VariantSettings.Rotation toYRotation(int degrees) {
-        return switch (degrees) {
-            case 0 -> Rotation.R0;
-            case 90 -> Rotation.R90;
-            case 180 -> Rotation.R180;
-            case 270 -> Rotation.R270;
-            default -> throw new IllegalArgumentException("Invalid rotation: " + degrees + ". Must be 0, 90, 180, or 270.");
-        };
+        return TextureSetVariants.rotation(degrees);
     }
 
     /**
@@ -410,78 +368,15 @@ public abstract class BaseBlockExporter {
     }
 
     /**
-     * Builds a list of weighted, optionally-rotated block state variants.
-     * Used by leaves, flower pots, and other blocks that support random rotation.
-     *
-     * @param modelIds List of model identifiers
-     * @param weights List of weights (null for uniform weight)
-     * @param rotateRandom Whether to add 0/90/180/270° rotation variants
-     * @return List of BlockStateVariants
+     * The model choices for one state, one per texture set, named
+     * {@code idForModel + "_v" + (setIdx+1)}. Custom-model states point at their hand-authored
+     * models, others at generated ones.
      */
-    protected static List<BlockStateVariant> buildRotatedVariantList(
-            List<Identifier> modelIds, List<Integer> weights, boolean rotateRandom) {
-        List<BlockStateVariant> variants = new ArrayList<>();
-        int rotationCount = rotateRandom ? 4 : 1;
-
-        for (int i = 0; i < modelIds.size(); i++) {
-            for (int rotation = 0; rotation < rotationCount; rotation++) {
-                BlockStateVariant variant = BlockStateVariant.create()
-                        .put(VariantSettings.MODEL, modelIds.get(i));
-
-                if (weights != null && weights.get(i) > 1) {
-                    variant = variant.put(VariantSettings.WEIGHT, weights.get(i));
-                }
-
-                if (rotation > 0) {
-                    variant = variant.put(VariantSettings.Y, toYRotation(90 * rotation));
-                }
-
-                variants.add(variant);
-            }
-        }
-
-        return variants;
-    }
-
-    /**
-     * Builds weighted, rotated BlockStateVariants from pre-computed model IDs.
-     * Pairs each ID with the weight of the texture set at the same index.
-     *
-     * @param state         The state variant (used only to look up texture-set weights)
-     * @param modelIds      Pre-computed model IDs (one per texture set, in order)
-     * @param rotationCount 1 for no rotation, 4 for 0/90/180/270° variants
-     */
-    protected static List<BlockStateVariant> buildVariants(
-            BlockDefinition.StateVariant state, List<Identifier> modelIds, int rotationCount) {
-        List<BlockStateVariant> variants = new ArrayList<>();
-        for (int i = 0; i < modelIds.size(); i++) {
-            BlockDefinition.RandomTextureVariant set = state.getRandomTextureSet(i);
-            int weight = (set != null) ? set.getWeight() : 1;
-            for (int rot = 0; rot < rotationCount; rot++) {
-                variants.add(createWeightedVariant(modelIds.get(i), rot * 90, weight));
-            }
-        }
-        return variants;
-    }
-
-    /**
-     * Builds weighted, rotated BlockStateVariants for a single state, constructing
-     * model IDs from {@code idForModel + "_v" + (setIdx+1)}. Dispatches between
-     * custom-model and generated-model IDs automatically.
-     */
-    protected static List<BlockStateVariant> buildStateVariants(
-            Block block, BlockDefinition.StateVariant state, String idForModel, int rotationCount) {
-        List<BlockStateVariant> variants = new ArrayList<>();
-        state.forEachTextureSet((setIdx, set) -> {
-            int weight = (set != null) ? set.getWeight() : 1;
-            Identifier modelId = state.isCustomModel()
-                    ? createCustomModelId(block, getModelName(idForModel, setIdx))
-                    : createNestedModelId(block, getModelName(idForModel, setIdx));
-            for (int rot = 0; rot < rotationCount; rot++) {
-                variants.add(createWeightedVariant(modelId, rot * 90, weight));
-            }
-        });
-        return variants;
+    protected static List<TextureSetVariants.Choice> stateChoices(
+            Block block, BlockDefinition.StateVariant state, String idForModel) {
+        return TextureSetVariants.choices(state, (setIdx, set) -> state.isCustomModel()
+                ? createCustomModelId(block, getModelName(idForModel, setIdx))
+                : createNestedModelId(block, getModelName(idForModel, setIdx)));
     }
 
     /**
@@ -495,35 +390,13 @@ public abstract class BaseBlockExporter {
      */
     protected static VariantsBlockStateSupplier createRotatedVariantsBlockState(
             Block block, List<Identifier> modelIds, List<Integer> weights, boolean rotateRandom) {
-        List<BlockStateVariant> variants = buildRotatedVariantList(modelIds, weights, rotateRandom);
-
-        if (variants.size() == 1) {
-            return VariantsBlockStateSupplier.create(block, variants.get(0));
-        } else {
-            return VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0]));
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights == null ? 1 : weights.get(i)));
         }
-    }
-
-    protected static class ModelRegistry {
-        private final List<Identifier> modelIds = new ArrayList<>();
-        private final List<Integer> weights = new ArrayList<>();
-
-        public void add(Identifier modelId, int weight) {
-            modelIds.add(modelId);
-            weights.add(weight);
-        }
-
-        public List<Identifier> getModelIds() {
-            return modelIds;
-        }
-
-        public List<Integer> getWeights() {
-            return weights;
-        }
-
-        public int size() {
-            return modelIds.size();
-        }
+        List<BlockStateVariant> variants = TextureSetVariants.variants(
+                choices, TextureSetVariants.Transform.NONE, rotateRandom ? 4 : 1);
+        return VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0]));
     }
 
     /**

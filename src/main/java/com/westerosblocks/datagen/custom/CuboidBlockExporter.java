@@ -1,6 +1,5 @@
 package com.westerosblocks.datagen.custom;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.block.Block;
@@ -22,21 +21,21 @@ public class CuboidBlockExporter extends BaseBlockExporter {
         boolean hasMultipleStates = definition.getStateCount() > 1;
 
         CuboidBlockExporter exporter = new CuboidBlockExporter();
-        Map<String, List<Identifier>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
+        Map<String, List<TextureSetVariants.Choice>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
 
         if (stateModelMap.isEmpty()) {
             Identifier fallback = createNestedModelId(block, getModelName("base", 0));
-            stateModelMap.put("base", List.of(fallback));
+            stateModelMap.put("base", List.of(TextureSetVariants.Choice.of(fallback)));
         }
 
         generateBlockState(generator, block, states, stateModelMap, hasMultipleStates, rotationCount);
 
-        registerParentedItemModel(generator, block, stateModelMap.values().iterator().next().get(0));
+        registerParentedItemModel(generator, block, stateModelMap.values().iterator().next().get(0).model());
     }
 
     private static void generateBlockState(BlockStateModelGenerator generator, Block block,
                                           List<BlockDefinition.StateVariant> states,
-                                          Map<String, List<Identifier>> stateModelMap,
+                                          Map<String, List<TextureSetVariants.Choice>> stateModelMap,
                                           boolean hasMultipleStates, int rotationCount) {
         if (hasMultipleStates && hasStateProperty(block)) {
             BlockStateVariantMap.SingleProperty<String> stateMap =
@@ -44,17 +43,16 @@ public class CuboidBlockExporter extends BaseBlockExporter {
 
             for (BlockDefinition.StateVariant state : states) {
                 String stateId = getStateIdOrBase(state.getStateID());
-                List<Identifier> modelIds = stateModelMap.get(stateId);
-                if (modelIds == null || modelIds.isEmpty()) continue;
-                stateMap.register(stateId, buildVariants(state, modelIds, rotationCount));
+                List<TextureSetVariants.Choice> choices = stateModelMap.get(stateId);
+                if (choices == null || choices.isEmpty()) continue;
+                stateMap.register(stateId, TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount));
             }
 
             generator.blockStateCollector.accept(
                 VariantsBlockStateSupplier.create(block).coordinate(stateMap));
         } else {
-            BlockDefinition.StateVariant state = states.get(0);
-            List<Identifier> modelIds = stateModelMap.values().iterator().next();
-            List<BlockStateVariant> variants = buildVariants(state, modelIds, rotationCount);
+            List<TextureSetVariants.Choice> choices = stateModelMap.values().iterator().next();
+            List<BlockStateVariant> variants = TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount);
 
             generator.blockStateCollector.accept(
                 VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0])));
@@ -77,26 +75,24 @@ public class CuboidBlockExporter extends BaseBlockExporter {
      * state ID. Uses {@link LinkedHashMap} so iteration order matches definition
      * order (needed for deterministic item-model selection).
      */
-    protected Map<String, List<Identifier>> generateModelsReturnMap(BlockStateModelGenerator generator, Block block, BlockDefinition definition) {
+    protected Map<String, List<TextureSetVariants.Choice>> generateModelsReturnMap(BlockStateModelGenerator generator, Block block, BlockDefinition definition) {
         List<BlockDefinition.StateVariant> states = definition.getStates();
         boolean hasMultipleStates = definition.getStateCount() > 1;
 
-        Map<String, List<Identifier>> stateModelMap = new LinkedHashMap<>();
+        Map<String, List<TextureSetVariants.Choice>> stateModelMap = new LinkedHashMap<>();
 
         for (BlockDefinition.StateVariant state : states) {
             String stateId = getStateIdOrBase(state.getStateID());
             String modelNamePrefix = hasMultipleStates ? stateId : "base";
 
-            List<Identifier> modelIds = new ArrayList<>();
-            state.forEachTextureSet((setIdx, set) -> {
+            List<TextureSetVariants.Choice> choices = TextureSetVariants.choices(state, (setIdx, set) -> {
                 String variantName = getModelName(modelNamePrefix, setIdx);
 
                 if (state.isCustomModel()) {
-                    modelIds.add(createCustomModelId(block, variantName));
-                    return;
+                    return createCustomModelId(block, variantName);
                 }
                 if (set == null || set.getTextureCount() == 0) {
-                    return;
+                    return null;
                 }
 
                 List<String> textureList = new ArrayList<>(set.getTextures());
@@ -114,11 +110,11 @@ public class CuboidBlockExporter extends BaseBlockExporter {
                     modelId = parent.upload(createGeneratedModelId(block, variantName),
                             textureMap, generator.modelCollector);
                 }
-                modelIds.add(modelId);
+                return modelId;
             });
 
-            if (!modelIds.isEmpty()) {
-                stateModelMap.put(stateId, modelIds);
+            if (!choices.isEmpty()) {
+                stateModelMap.put(stateId, choices);
             }
         }
 
@@ -153,7 +149,7 @@ public class CuboidBlockExporter extends BaseBlockExporter {
      */
     protected static BlockStateSupplier generateFacingBlockState(
             Block block,
-            Map<String, List<Identifier>> stateModelMap,
+            Map<String, List<TextureSetVariants.Choice>> stateModelMap,
             List<BlockDefinition.StateVariant> states,
             boolean hasMultipleStates,
             FacingRotationProvider rotationProvider) {
@@ -170,35 +166,18 @@ public class CuboidBlockExporter extends BaseBlockExporter {
 
                 for (BlockDefinition.StateVariant state : states) {
                     String stateId = state.getStateID() != null ? state.getStateID() : "base";
-                    List<Identifier> modelIds = stateModelMap.get(stateId);
-                    if (modelIds == null || modelIds.isEmpty()) continue;
+                    List<TextureSetVariants.Choice> choices = stateModelMap.get(stateId);
+                    if (choices == null || choices.isEmpty()) continue;
 
-                    int rotYOffset = 0;
-                    if (state.getRotYOffset() != null) {
-                        rotYOffset = state.getRotYOffset().intValue();
-                    }
+                    int rotYOffset = state.getRotYOffset() != null ? state.getRotYOffset() : 0;
 
-                    FacingRotation[] rotations = rotationProvider.getRotations(state);
-                    List<BlockDefinition.RandomTextureVariant> randomTextures = state.getRandomTextures();
-                    boolean hasWeights = randomTextures != null && !randomTextures.isEmpty() && modelIds.size() > 1;
-
-                    for (FacingRotation fr : rotations) {
+                    for (FacingRotation fr : rotationProvider.getRotations(state)) {
                         String key = hasMultipleStates
                                 ? "facing=" + fr.facingValue() + ",state=" + stateId
                                 : "facing=" + fr.facingValue();
-
-                        if (hasWeights) {
-                            JsonArray variantArray = new JsonArray();
-                            for (int i = 0; i < modelIds.size() && i < randomTextures.size(); i++) {
-                                int weight = randomTextures.get(i).getWeight();
-                                for (int w = 0; w < weight; w++) {
-                                    variantArray.add(buildVariantJson(modelIds.get(i), fr, rotYOffset));
-                                }
-                            }
-                            variants.add(key, variantArray);
-                        } else {
-                            variants.add(key, buildVariantJson(modelIds.get(0), fr, rotYOffset));
-                        }
+                        TextureSetVariants.Transform transform =
+                                TextureSetVariants.Transform.of(fr.xRot(), fr.yRot()).plusY(rotYOffset);
+                        variants.add(key, BlockStateVariant.toJson(TextureSetVariants.variants(choices, transform)));
                     }
                 }
 
@@ -207,17 +186,4 @@ public class CuboidBlockExporter extends BaseBlockExporter {
             }
         };
     }
-
-    /**
-     * Builds a single variant JSON object with model, y rotation, and optional x rotation.
-     */
-    private static JsonObject buildVariantJson(Identifier modelId, FacingRotation fr, int rotYOffset) {
-        JsonObject variant = new JsonObject();
-        variant.addProperty("model", modelId.toString());
-        int yRot = (fr.yRot() + rotYOffset) % 360;
-        if (yRot > 0) variant.addProperty("y", yRot);
-        if (fr.xRot() != 0) variant.addProperty("x", fr.xRot());
-        return variant;
-    }
-
 }

@@ -60,66 +60,46 @@ public class FenceBlockExporter extends BaseBlockExporter {
     }
 
     /**
-     * Adds fence post and side entries to the multipart supplier.
+     * Adds fence post and side entries to the multipart supplier, one entry per part with the
+     * texture sets as its weighted random choices.
      * If stateProperty and stateId are non-null, adds state condition to when clauses.
      */
     private static void addFenceEntries(MultipartBlockStateSupplier supplier, List<Identifier> postModelIds,
             List<Identifier> sideModelIds, List<Integer> weights,
             ModProperties.StateProperty stateProperty, String stateId) {
-        for (int i = 0; i < postModelIds.size(); i++) {
-            // Add post model
-            BlockStateVariant postVariant = BlockStateVariant.create()
-                    .put(VariantSettings.MODEL, postModelIds.get(i));
-            if (weights.get(i) > 1) {
-                postVariant = postVariant.put(VariantSettings.WEIGHT, weights.get(i));
-            }
+        boolean hasState = stateProperty != null && stateId != null;
 
-            if (stateProperty != null && stateId != null) {
-                supplier.with(When.create().set(stateProperty, stateId), postVariant);
-            } else {
-                supplier.with(postVariant);
-            }
+        List<BlockStateVariant> posts = TextureSetVariants.variants(
+                choices(postModelIds, weights), TextureSetVariants.Transform.NONE);
+        if (hasState) {
+            supplier.with(When.create().set(stateProperty, stateId), posts);
+        } else {
+            supplier.with(posts);
+        }
 
-            // Add side models for each direction
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.NORTH, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.EAST, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.SOUTH, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), Direction.WEST, stateProperty, stateId);
+        List<TextureSetVariants.Choice> sides = choices(sideModelIds, weights);
+        for (Direction direction : new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            When.PropertyCondition condition = When.create().set(switch (direction) {
+                case EAST -> Properties.EAST;
+                case SOUTH -> Properties.SOUTH;
+                case WEST -> Properties.WEST;
+                default -> Properties.NORTH;
+            }, true);
+            if (hasState) {
+                condition.set(stateProperty, stateId);
+            }
+            TextureSetVariants.Transform transform =
+                    TextureSetVariants.Transform.y(getRotationForDirection(direction)).withUvlock(true);
+            supplier.with(condition, TextureSetVariants.variants(sides, transform));
         }
     }
 
-    /**
-     * Adds a single side variant for a specific direction, optionally with state condition.
-     */
-    private static void addSideVariant(MultipartBlockStateSupplier supplier, Identifier sideModelId,
-                                       int weight, Direction direction,
-                                       ModProperties.StateProperty stateProperty, String stateId) {
-        BlockStateVariant sideVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, sideModelId)
-                .put(VariantSettings.UVLOCK, true);
-
-        int yRotation = getRotationForDirection(direction);
-        if (yRotation != 0) {
-            sideVariant = sideVariant.put(VariantSettings.Y, toYRotation(yRotation));
+    private static List<TextureSetVariants.Choice> choices(List<Identifier> modelIds, List<Integer> weights) {
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights.get(i)));
         }
-
-        if (weight > 1) {
-            sideVariant = sideVariant.put(VariantSettings.WEIGHT, weight);
-        }
-
-        When.PropertyCondition condition = switch (direction) {
-            case NORTH -> When.create().set(Properties.NORTH, true);
-            case EAST -> When.create().set(Properties.EAST, true);
-            case SOUTH -> When.create().set(Properties.SOUTH, true);
-            case WEST -> When.create().set(Properties.WEST, true);
-            default -> null;
-        };
-
-        if (condition != null && stateProperty != null && stateId != null) {
-            condition.set(stateProperty, stateId);
-        }
-
-        supplier.with(condition, sideVariant);
+        return choices;
     }
 
     /**

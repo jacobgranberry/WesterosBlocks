@@ -75,32 +75,26 @@ public class PaneBlockExporter extends BaseBlockExporter {
         boolean isBars = paneBlock.isBarsModel();
         boolean isLegacy = paneBlock.isLegacyModel();
 
-        // Add all variants (for random textures)
-        for (int i = 0; i < sideModelIds.size(); i++) {
-            int weight = weights.get(i);
+        // One entry per part, with the texture sets as its weighted random choices
+        List<TextureSetVariants.Choice> posts = choices(postModelIds, weights);
+        List<TextureSetVariants.Choice> sides = choices(sideModelIds, weights);
+        List<TextureSetVariants.Choice> nosides = choices(nosideModelIds, weights);
+        Direction[] directions = {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
-            // Post model (always present for non-bars models)
-            if (!isBars) {
-                BlockStateVariant postVariant = BlockStateVariant.create()
-                        .put(VariantSettings.MODEL, postModelIds.get(i));
-                if (weight > 1) {
-                    postVariant = postVariant.put(VariantSettings.WEIGHT, weight);
-                }
-                supplier = supplier.with(postVariant);
-            }
+        // Post model (always present for non-bars models)
+        if (!isBars) {
+            supplier = supplier.with(TextureSetVariants.variants(posts, TextureSetVariants.Transform.NONE));
+        }
 
-            // Add side connections for all 4 directions with proper rotation and uvlock
-            addPaneSideVariant(supplier, sideModelIds.get(i), weight, Direction.NORTH, isBars, isLegacy);
-            addPaneSideVariant(supplier, sideModelIds.get(i), weight, Direction.EAST, isBars, isLegacy);
-            addPaneSideVariant(supplier, sideModelIds.get(i), weight, Direction.SOUTH, isBars, isLegacy);
-            addPaneSideVariant(supplier, sideModelIds.get(i), weight, Direction.WEST, isBars, isLegacy);
+        // Add side connections for all 4 directions with proper rotation and uvlock
+        for (Direction direction : directions) {
+            addPaneSideVariant(supplier, sides, direction, isBars, isLegacy);
+        }
 
-            // No-side connections for non-bars models (all 4 directions)
-            if (!isBars) {
-                addPaneNosideVariant(supplier, nosideModelIds.get(i), weight, Direction.NORTH);
-                addPaneNosideVariant(supplier, nosideModelIds.get(i), weight, Direction.EAST);
-                addPaneNosideVariant(supplier, nosideModelIds.get(i), weight, Direction.SOUTH);
-                addPaneNosideVariant(supplier, nosideModelIds.get(i), weight, Direction.WEST);
+        // No-side connections for non-bars models (all 4 directions)
+        if (!isBars) {
+            for (Direction direction : directions) {
+                addPaneNosideVariant(supplier, nosides, direction);
             }
         }
 
@@ -112,20 +106,9 @@ public class PaneBlockExporter extends BaseBlockExporter {
      * For bars and legacy models, uses OR logic: direction=true OR all_directions=false
      * (matches the 1.18.2 PaneBlockModelExport, which applied this for is_legacy || is_bars).
      */
-    private static void addPaneSideVariant(MultipartBlockStateSupplier supplier, Identifier sideModelId,
-                                           int weight, Direction direction, boolean isBars, boolean isLegacy) {
-        BlockStateVariant sideVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, sideModelId)
-                .put(VariantSettings.UVLOCK, true);
-
-        int yRotation = getRotationForDirection(direction);
-        if (yRotation != 0) {
-            sideVariant = sideVariant.put(VariantSettings.Y, toYRotation(yRotation));
-        }
-
-        if (weight > 1) {
-            sideVariant = sideVariant.put(VariantSettings.WEIGHT, weight);
-        }
+    private static void addPaneSideVariant(MultipartBlockStateSupplier supplier, List<TextureSetVariants.Choice> sides,
+                                           Direction direction, boolean isBars, boolean isLegacy) {
+        List<BlockStateVariant> sideVariants = TextureSetVariants.variants(sides, sidesTransform(direction));
 
         // Create condition
         When condition;
@@ -157,26 +140,15 @@ public class PaneBlockExporter extends BaseBlockExporter {
             };
         }
 
-        supplier.with(condition, sideVariant);
+        supplier.with(condition, sideVariants);
     }
 
     /**
      * Adds a pane noside variant for a specific direction (non-bars models only).
      */
-    private static void addPaneNosideVariant(MultipartBlockStateSupplier supplier, Identifier nosideModelId,
-                                             int weight, Direction direction) {
-        BlockStateVariant nosideVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, nosideModelId)
-                .put(VariantSettings.UVLOCK, true);
-
-        int yRotation = getRotationForDirection(direction);
-        if (yRotation != 0) {
-            nosideVariant = nosideVariant.put(VariantSettings.Y, toYRotation(yRotation));
-        }
-
-        if (weight > 1) {
-            nosideVariant = nosideVariant.put(VariantSettings.WEIGHT, weight);
-        }
+    private static void addPaneNosideVariant(MultipartBlockStateSupplier supplier, List<TextureSetVariants.Choice> nosides,
+                                             Direction direction) {
+        List<BlockStateVariant> nosideVariants = TextureSetVariants.variants(nosides, sidesTransform(direction));
 
         // Condition: direction=false
         When condition = switch (direction) {
@@ -187,7 +159,20 @@ public class PaneBlockExporter extends BaseBlockExporter {
             default -> throw new IllegalArgumentException("Invalid direction: " + direction);
         };
 
-        supplier.with(condition, nosideVariant);
+        supplier.with(condition, nosideVariants);
+    }
+
+    /** Side and no-side parts are modelled facing north, turned to {@code direction}, with uvlock. */
+    private static TextureSetVariants.Transform sidesTransform(Direction direction) {
+        return TextureSetVariants.Transform.y(getRotationForDirection(direction)).withUvlock(true);
+    }
+
+    private static List<TextureSetVariants.Choice> choices(List<Identifier> modelIds, List<Integer> weights) {
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights.get(i)));
+        }
+        return choices;
     }
 
     public static void registerCustomPaneBlock(BlockStateModelGenerator generator, Block block, BlockDefinition definition) {

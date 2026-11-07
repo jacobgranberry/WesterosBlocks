@@ -8,6 +8,7 @@ import net.minecraft.data.client.*;
 import net.minecraft.block.Block;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -79,84 +80,53 @@ public class WallBlockExporter extends BaseBlockExporter {
     }
 
     /**
-     * Adds wall post and side entries to the multipart supplier.
+     * Adds wall post and side entries to the multipart supplier, one entry per part with the
+     * texture sets as its weighted random choices.
      * If stateProperty and stateId are non-null, adds state condition to when clauses.
      */
     private static void addWallEntries(MultipartBlockStateSupplier supplier, List<Identifier> postModelIds,
             List<Identifier> sideModelIds, List<Identifier> tallModelIds, List<Integer> weights,
             ModProperties.StateProperty stateProperty, String stateId) {
-        for (int i = 0; i < postModelIds.size(); i++) {
-            addPostVariant(supplier, postModelIds.get(i), weights.get(i), stateProperty, stateId);
+        boolean hasState = stateProperty != null && stateId != null;
 
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), "north", WallShape.LOW, stateProperty, stateId);
-            addSideVariant(supplier, tallModelIds.get(i), weights.get(i), "north", WallShape.TALL, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), "east", WallShape.LOW, stateProperty, stateId);
-            addSideVariant(supplier, tallModelIds.get(i), weights.get(i), "east", WallShape.TALL, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), "south", WallShape.LOW, stateProperty, stateId);
-            addSideVariant(supplier, tallModelIds.get(i), weights.get(i), "south", WallShape.TALL, stateProperty, stateId);
-            addSideVariant(supplier, sideModelIds.get(i), weights.get(i), "west", WallShape.LOW, stateProperty, stateId);
-            addSideVariant(supplier, tallModelIds.get(i), weights.get(i), "west", WallShape.TALL, stateProperty, stateId);
+        When.PropertyCondition postCondition = When.create().set(Properties.UP, true);
+        if (hasState) {
+            postCondition.set(stateProperty, stateId);
+        }
+        supplier.with(postCondition, TextureSetVariants.variants(
+                choices(postModelIds, weights), TextureSetVariants.Transform.NONE));
+
+        List<TextureSetVariants.Choice> lowSides = choices(sideModelIds, weights);
+        List<TextureSetVariants.Choice> tallSides = choices(tallModelIds, weights);
+        for (Direction direction : new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}) {
+            TextureSetVariants.Transform transform =
+                    TextureSetVariants.Transform.y(getRotationForDirection(direction)).withUvlock(true);
+            addSideEntry(supplier, direction, WallShape.LOW, lowSides, transform, hasState ? stateProperty : null, stateId);
+            addSideEntry(supplier, direction, WallShape.TALL, tallSides, transform, hasState ? stateProperty : null, stateId);
         }
     }
 
-    /**
-     * Adds a single post variant, optionally with state condition.
-     */
-    private static void addPostVariant(MultipartBlockStateSupplier supplier, Identifier postModelId, int weight,
-                                       ModProperties.StateProperty stateProperty, String stateId) {
-        BlockStateVariant postVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, postModelId);
-
-        if (weight > 1) {
-            postVariant = postVariant.put(VariantSettings.WEIGHT, weight);
-        }
-
-        When.PropertyCondition condition = When.create().set(Properties.UP, true);
-        if (stateProperty != null && stateId != null) {
+    private static void addSideEntry(MultipartBlockStateSupplier supplier, Direction direction, WallShape shape,
+                                     List<TextureSetVariants.Choice> sides, TextureSetVariants.Transform transform,
+                                     ModProperties.StateProperty stateProperty, String stateId) {
+        When.PropertyCondition condition = When.create().set(switch (direction) {
+            case EAST -> Properties.EAST_WALL_SHAPE;
+            case SOUTH -> Properties.SOUTH_WALL_SHAPE;
+            case WEST -> Properties.WEST_WALL_SHAPE;
+            default -> Properties.NORTH_WALL_SHAPE;
+        }, shape);
+        if (stateProperty != null) {
             condition.set(stateProperty, stateId);
         }
-
-        supplier.with(condition, postVariant);
+        supplier.with(condition, TextureSetVariants.variants(sides, transform));
     }
 
-    /**
-     * Adds a single side variant for a specific direction and shape (low or tall),
-     * optionally with state condition.
-     */
-    private static void addSideVariant(MultipartBlockStateSupplier supplier, Identifier sideModelId,
-                                       int weight, String direction, WallShape shape,
-                                       ModProperties.StateProperty stateProperty, String stateId) {
-        BlockStateVariant sideVariant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, sideModelId)
-                .put(VariantSettings.UVLOCK, true);
-
-        int yRotation = switch (direction) {
-            case "east" -> 90;
-            case "south" -> 180;
-            case "west" -> 270;
-            default -> 0;
-        };
-        if (yRotation != 0) {
-            sideVariant = sideVariant.put(VariantSettings.Y, toYRotation(yRotation));
+    private static List<TextureSetVariants.Choice> choices(List<Identifier> modelIds, List<Integer> weights) {
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights.get(i)));
         }
-
-        if (weight > 1) {
-            sideVariant = sideVariant.put(VariantSettings.WEIGHT, weight);
-        }
-
-        When.PropertyCondition condition = switch (direction) {
-            case "north" -> When.create().set(Properties.NORTH_WALL_SHAPE, shape);
-            case "east" -> When.create().set(Properties.EAST_WALL_SHAPE, shape);
-            case "south" -> When.create().set(Properties.SOUTH_WALL_SHAPE, shape);
-            case "west" -> When.create().set(Properties.WEST_WALL_SHAPE, shape);
-            default -> throw new IllegalArgumentException("Unknown direction: " + direction);
-        };
-
-        if (stateProperty != null && stateId != null) {
-            condition.set(stateProperty, stateId);
-        }
-
-        supplier.with(condition, sideVariant);
+        return choices;
     }
 
     /**

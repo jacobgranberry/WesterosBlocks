@@ -7,6 +7,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -99,69 +100,43 @@ public class FenceGateBlockExporter extends BaseBlockExporter {
      */
     public static void registerFenceGateBlockWithRandomTextures(BlockStateModelGenerator generator, Block block,
                                                                boolean tinted, List<BlockDefinition.TextureVariantSet> textureSets) {
-        ModelRegistry gateRegistry = new ModelRegistry();
-        ModelRegistry gateOpenRegistry = new ModelRegistry();
-        ModelRegistry gateWallRegistry = new ModelRegistry();
-        ModelRegistry gateWallOpenRegistry = new ModelRegistry();
+        List<TextureSetVariants.Choice> gates = new ArrayList<>();
+        List<TextureSetVariants.Choice> gatesOpen = new ArrayList<>();
+        List<TextureSetVariants.Choice> gatesWall = new ArrayList<>();
+        List<TextureSetVariants.Choice> gatesWallOpen = new ArrayList<>();
 
         for (int i = 0; i < textureSets.size(); i++) {
             BlockDefinition.TextureVariantSet set = textureSets.get(i);
             TextureMap textureMap = createFenceGateTextureMap(set.getTexturesAsArray()[0]);
+            String suffix = "_v" + (i + 1);
 
-            gateRegistry.add(uploadModel(createFenceGateModel(tinted), block, "gate_v" + (i + 1),
-                                        textureMap, generator.modelCollector), set.weight);
-            gateOpenRegistry.add(uploadModel(createFenceGateOpenModel(tinted), block, "gate_open_v" + (i + 1),
-                                            textureMap, generator.modelCollector), set.weight);
-            gateWallRegistry.add(uploadModel(createFenceGateWallModel(tinted), block, "gate_wall_v" + (i + 1),
-                                            textureMap, generator.modelCollector), set.weight);
-            gateWallOpenRegistry.add(uploadModel(createFenceGateWallOpenModel(tinted), block, "gate_wall_open_v" + (i + 1),
-                                                textureMap, generator.modelCollector), set.weight);
+            gates.add(new TextureSetVariants.Choice(uploadModel(createFenceGateModel(tinted), block,
+                    "gate" + suffix, textureMap, generator.modelCollector), set.weight));
+            gatesOpen.add(new TextureSetVariants.Choice(uploadModel(createFenceGateOpenModel(tinted), block,
+                    "gate_open" + suffix, textureMap, generator.modelCollector), set.weight));
+            gatesWall.add(new TextureSetVariants.Choice(uploadModel(createFenceGateWallModel(tinted), block,
+                    "gate_wall" + suffix, textureMap, generator.modelCollector), set.weight));
+            gatesWallOpen.add(new TextureSetVariants.Choice(uploadModel(createFenceGateWallOpenModel(tinted), block,
+                    "gate_wall_open" + suffix, textureMap, generator.modelCollector), set.weight));
         }
 
         // Create blockstate with weighted random textures
-        generator.blockStateCollector.accept(createFenceGateBlockstateWithRandomTextures(block,
-                gateRegistry.getModelIds(), gateOpenRegistry.getModelIds(),
-                gateWallRegistry.getModelIds(), gateWallOpenRegistry.getModelIds(),
-                gateRegistry.getWeights()));
+        var variantMap = BlockStateVariantMap.create(Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.IN_WALL);
+        for (Direction facing : new Direction[]{Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.WEST}) {
+            // Gate models face south unrotated
+            TextureSetVariants.Transform transform = TextureSetVariants.Transform.y(getFacingSouthDefaultRotation(facing));
+            variantMap.register(facing, false, false, TextureSetVariants.variants(gates, transform));
+            variantMap.register(facing, false, true, TextureSetVariants.variants(gatesWall, transform));
+            variantMap.register(facing, true, false, TextureSetVariants.variants(gatesOpen, transform));
+            variantMap.register(facing, true, true, TextureSetVariants.variants(gatesWallOpen, transform));
+        }
+        generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(variantMap));
 
         // Register item model (using first texture)
         TextureMap itemTextureMap = createFenceGateTextureMap(textureSets.get(0).getTexturesAsArray()[0]);
         Identifier itemModelId = ModelIds.getItemModelId(block.asItem());
         createFenceGateModel(tinted).upload(itemModelId, itemTextureMap, generator.modelCollector);
     }
-
-    /**
-     * Creates blockstate supplier with weighted random texture variants.
-     */
-    private static VariantsBlockStateSupplier createFenceGateBlockstateWithRandomTextures(Block block,
-            List<Identifier> gateIds, List<Identifier> gateOpenIds, List<Identifier> gateWallIds,
-            List<Identifier> gateWallOpenIds, List<Integer> weights) {
-
-        return VariantsBlockStateSupplier.create(block).coordinate(
-                BlockStateVariantMap.create(Properties.HORIZONTAL_FACING, Properties.OPEN, Properties.IN_WALL)
-                        // EAST facing
-                        .register(Direction.EAST, false, false, createWeightedVariants(gateIds, weights, 270))
-                        .register(Direction.EAST, false, true, createWeightedVariants(gateWallIds, weights, 270))
-                        .register(Direction.EAST, true, false, createWeightedVariants(gateOpenIds, weights, 270))
-                        .register(Direction.EAST, true, true, createWeightedVariants(gateWallOpenIds, weights, 270))
-                        // NORTH facing
-                        .register(Direction.NORTH, false, false, createWeightedVariants(gateIds, weights, 180))
-                        .register(Direction.NORTH, false, true, createWeightedVariants(gateWallIds, weights, 180))
-                        .register(Direction.NORTH, true, false, createWeightedVariants(gateOpenIds, weights, 180))
-                        .register(Direction.NORTH, true, true, createWeightedVariants(gateWallOpenIds, weights, 180))
-                        // SOUTH facing
-                        .register(Direction.SOUTH, false, false, createWeightedVariants(gateIds, weights, 0))
-                        .register(Direction.SOUTH, false, true, createWeightedVariants(gateWallIds, weights, 0))
-                        .register(Direction.SOUTH, true, false, createWeightedVariants(gateOpenIds, weights, 0))
-                        .register(Direction.SOUTH, true, true, createWeightedVariants(gateWallOpenIds, weights, 0))
-                        // WEST facing
-                        .register(Direction.WEST, false, false, createWeightedVariants(gateIds, weights, 90))
-                        .register(Direction.WEST, false, true, createWeightedVariants(gateWallIds, weights, 90))
-                        .register(Direction.WEST, true, false, createWeightedVariants(gateOpenIds, weights, 90))
-                        .register(Direction.WEST, true, true, createWeightedVariants(gateWallOpenIds, weights, 90))
-        );
-    }
-
 
     /**
      * Registers a fence gate block from a BlockDefinition.

@@ -34,7 +34,7 @@ public class MountedBlockExporter extends CuboidBlockExporter {
         boolean hasMultipleStates = definition.getStateCount() > 1;
 
         MountedBlockExporter exporter = new MountedBlockExporter();
-        Map<String, List<Identifier>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
+        Map<String, List<TextureSetVariants.Choice>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
 
         if (stateModelMap.isEmpty()) {
             WesterosBlocks.LOGGER.warn("No models generated for mounted block: {}", blockName);
@@ -46,7 +46,7 @@ public class MountedBlockExporter extends CuboidBlockExporter {
                 generateFacingBlockState(block, stateModelMap, states, hasMultipleStates,
                         state -> state.isCustomModel() ? CUSTOM_MODEL_ROTATIONS : CuboidNSEWBlockExporter.NSEW_ROTATIONS));
 
-        Identifier firstModel = stateModelMap.values().iterator().next().get(0);
+        Identifier firstModel = stateModelMap.values().iterator().next().get(0).model();
         registerParentedItemModel(generator, block, firstModel);
     }
 }
