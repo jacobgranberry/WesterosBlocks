@@ -16,9 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.WorldAccess;
 
-import com.westerosblocks.data.BlockDefinition.CuboidElement.CuboidRotation;
 
-import java.util.List;
 
 /**
  * Cuboid block with 6-directional facing (NORTH, SOUTH, EAST, WEST, UP, DOWN).
@@ -41,32 +39,7 @@ public class WCCuboidNSEWUDBlock extends WCCuboidBlock {
     }
 
     public WCCuboidNSEWUDBlock(AbstractBlock.Settings settings, BlockDefinition def, boolean doToggleOnUse) {
-        super(settings, def, 6, doToggleOnUse);  // modelsPerState = 6 (EAST, SOUTH, WEST, NORTH, UP, DOWN)
-
-        // Rotate cuboids for each facing direction
-        int stcnt = def.getStateCount();
-        for (int stidx = 0; stidx < stcnt; stidx++) {
-            int off = stidx * this.modelsPerState;
-
-            // Rotate base cuboids to create 6 facing variants
-            List<BlockDefinition.CuboidElement> baseCuboids = cuboid_by_facing[off];
-            if (baseCuboids != null && !baseCuboids.isEmpty()) {
-                for (BlockDefinition.CuboidElement cuboid : baseCuboids) {
-                    cuboid_by_facing[off + 1].add(cuboid.rotateCuboid(CuboidRotation.ROTY90));   // SOUTH
-                    cuboid_by_facing[off + 2].add(cuboid.rotateCuboid(CuboidRotation.ROTY180));  // WEST
-                    cuboid_by_facing[off + 3].add(cuboid.rotateCuboid(CuboidRotation.ROTY270));  // NORTH
-                    cuboid_by_facing[off + 4].add(cuboid.rotateCuboid(CuboidRotation.ROTZ270));  // UP
-                    cuboid_by_facing[off + 5].add(cuboid.rotateCuboid(CuboidRotation.ROTZ90));   // DOWN
-                }
-            }
-        }
-
-        // Compute shapes from rotated cuboids
-        for (int i = 0; i < cuboid_by_facing.length; i++) {
-            if (SHAPE_BY_INDEX[i] == null) {
-                SHAPE_BY_INDEX[i] = computeShapeFromCuboids(cuboid_by_facing[i]);
-            }
-        }
+        super(settings, def, doToggleOnUse);
 
         BlockState defbs = this.getDefaultState()
             .with(WATERLOGGED, false)
@@ -126,20 +99,8 @@ public class WCCuboidNSEWUDBlock extends WCCuboidBlock {
         return state.with(FACING, rotation.rotate(facing));
     }
 
-    /**
-     * Override to add facing offset to state index.
-     * Index = (stateIdx × modelsPerState) + facingOffset
-     */
     @Override
-    protected int getIndexFromState(BlockState state) {
-        int off = super.getIndexFromState(state);  // stateIdx × modelsPerState
-        return switch (state.get(FACING)) {
-            case EAST  -> off;      // +0
-            case SOUTH -> off + 1;  // +1
-            case WEST  -> off + 2;  // +2
-            case NORTH -> off + 3;  // +3
-            case UP    -> off + 4;  // +4
-            case DOWN  -> off + 5;  // +5
-        };
+    protected Direction shapeFacing(BlockState state) {
+        return state.get(FACING);
     }
 }

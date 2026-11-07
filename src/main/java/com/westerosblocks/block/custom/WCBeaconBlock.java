@@ -1,12 +1,13 @@
 package com.westerosblocks.block.custom;
 
+import com.westerosblocks.block.shape.Box;
 import com.westerosblocks.data.BlockDefinition;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.shape.VoxelShape;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class WCBeaconBlock extends WCCuboidBlock {
 
@@ -43,14 +44,16 @@ public class WCBeaconBlock extends WCCuboidBlock {
         }
     }
 
+    private static final VoxelShape BEACON_SHAPE = Box.union(Box.of(Arrays.asList(BEACON_CUBOIDS)));
+
     protected WCBeaconBlock(AbstractBlock.Settings settings, BlockDefinition def) {
-        super(settings, def, 1, false);  // modelsPerState = 1, no toggleOnUse
+        super(settings, def, false);  // no toggleOnUse
+    }
 
-        // Override cuboids with hardcoded beacon geometry
-        List<BlockDefinition.CuboidElement> beaconCuboidList = new ArrayList<>(Arrays.asList(BEACON_CUBOIDS));
-
-        this.cuboid_by_facing[0] = beaconCuboidList;
-        this.SHAPE_BY_INDEX[0] = computeShapeFromCuboids(beaconCuboidList);
+    /** The first state uses the hardcoded beacon geometry instead of the definition's. */
+    @Override
+    protected VoxelShape shapeFor(BlockState state) {
+        return stateIndex(state) == 0 ? BEACON_SHAPE : super.shapeFor(state);
     }
 
     /**

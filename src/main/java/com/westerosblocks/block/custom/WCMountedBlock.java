@@ -1,6 +1,7 @@
 package com.westerosblocks.block.custom;
 
-import com.google.common.collect.ImmutableMap;
+import com.westerosblocks.block.shape.Box;
+import com.westerosblocks.block.shape.FacingShapes;
 import com.westerosblocks.data.BlockDefinition;
 import net.minecraft.block.*;
 import net.minecraft.item.ItemPlacementContext;
@@ -12,13 +13,11 @@ import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 
 import java.util.List;
-import java.util.Map;
 
 public class WCMountedBlock extends Block implements WCBlockDef {
     protected BlockDefinition def;
@@ -26,14 +25,16 @@ public class WCMountedBlock extends Block implements WCBlockDef {
 
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
-    // Map of VoxelShapes for each facing direction
-    private final Map<Direction, VoxelShape> shapesByFacing;
+    /** Thin panel against the wall, for blocks that define no geometry. */
+    private static final FacingShapes DEFAULT_SHAPES = FacingShapes.of(Direction.EAST, Box.pixels(0, 0, 0, 2, 16, 16));
 
-    public WCMountedBlock(Settings settings, BlockDefinition def, Map<Direction, VoxelShape> shapes, boolean allowUnsupported) {
+    private final FacingShapes shapes;
+
+    public WCMountedBlock(Settings settings, BlockDefinition def, FacingShapes shapes, boolean allowUnsupported) {
         super(settings);
         this.def = def;
         this.allowUnsupported = allowUnsupported;
-        this.shapesByFacing = shapes != null ? shapes : createDefaultShapes();
+        this.shapes = shapes;
         this.setDefaultState(this.getStateManager().getDefaultState()
                 .with(FACING, Direction.NORTH));
     }
@@ -42,109 +43,30 @@ public class WCMountedBlock extends Block implements WCBlockDef {
         @Override
         public Block buildBlockClass(BlockDefinition definition) {
             AbstractBlock.Settings settings = definition.makeSettings();
-            // Try cuboids first (NORTH-based), then fall back to boundingBox (EAST-based)
-            Map<Direction, VoxelShape> shapes = createRotatedShapesFromCuboids(definition);
-            if (shapes == null) {
-                shapes = createRotatedShapes(definition);
-            }
+            FacingShapes shapes = createShapes(definition);
             boolean allowUnsupported = definition.isAllowUnsupported();
             return new WCMountedBlock(settings, definition, shapes, allowUnsupported);
         }
 
         /**
-         * Creates rotated VoxelShapes from multiple cuboids defined in NORTH orientation.
-         * Cuboids are in NORTH orientation to match custom model at 0° rotation.
-         * Returns null if no cuboids are defined.
+         * Cuboids come first, then the bounding box, then a thin panel against the wall.
+         * The bounding box is authored facing east, the panel's side being the wall.
+         *
+         * <p>The cuboid outline has always been built as if the cuboids were authored facing
+         * south (the NORTH outline is the cuboids turned half way round), although the custom
+         * models they describe face north at 0 degrees. Kept as is until a block that uses
+         * cuboids is checked in-game.
          */
-        private static Map<Direction, VoxelShape> createRotatedShapesFromCuboids(BlockDefinition definition) {
+        private static FacingShapes createShapes(BlockDefinition definition) {
             List<BlockDefinition.CuboidElement> cuboids = definition.getCuboids();
-            if (cuboids == null || cuboids.isEmpty()) {
-                return null;
+            if (cuboids != null && !cuboids.isEmpty()) {
+                return FacingShapes.of(Direction.SOUTH, Box.of(cuboids));
             }
-
-            VoxelShape northShape = VoxelShapes.empty();
-            VoxelShape eastShape = VoxelShapes.empty();
-            VoxelShape southShape = VoxelShapes.empty();
-            VoxelShape westShape = VoxelShapes.empty();
-
-            for (BlockDefinition.CuboidElement c : cuboids) {
-                double xMin = c.getXMin(), xMax = c.getXMax();
-                double yMin = c.getYMin(), yMax = c.getYMax();
-                double zMin = c.getZMin(), zMax = c.getZMax();
-
-                // NORTH (0°): mirror X and Z
-                northShape = VoxelShapes.union(northShape,
-                    Block.createCuboidShape((1-xMax)*16, yMin*16, (1-zMax)*16, (1-xMin)*16, yMax*16, (1-zMin)*16));
-                // EAST (90° CW): x'=z, z'=1-x
-                eastShape = VoxelShapes.union(eastShape,
-                    Block.createCuboidShape(zMin*16, yMin*16, (1-xMax)*16, zMax*16, yMax*16, (1-xMin)*16));
-                // SOUTH (180°): as-is
-                southShape = VoxelShapes.union(southShape,
-                    Block.createCuboidShape(xMin*16, yMin*16, zMin*16, xMax*16, yMax*16, zMax*16));
-                // WEST (270° CW): x'=1-z, z'=x
-                westShape = VoxelShapes.union(westShape,
-                    Block.createCuboidShape((1-zMax)*16, yMin*16, xMin*16, (1-zMin)*16, yMax*16, xMax*16));
+            if (definition.hasBoundingBox()) {
+                return FacingShapes.of(Direction.EAST, Box.of(definition.getBoundingBox()));
             }
-
-            return ImmutableMap.of(
-                Direction.NORTH, northShape,
-                Direction.EAST, eastShape,
-                Direction.SOUTH, southShape,
-                Direction.WEST, westShape
-            );
+            return DEFAULT_SHAPES;
         }
-
-        /**
-         * Creates rotated VoxelShapes for all 4 horizontal facings from the BlockDefinition's bounding box
-         * Assumes JSON bbox is defined for WEST facing (thin in X, positioned at west edge)
-         */
-        private static Map<Direction, VoxelShape> createRotatedShapes(BlockDefinition definition) {
-            if (!definition.hasBoundingBox()) {
-                return createDefaultShapes();
-            }
-
-            BlockDefinition.BoundingBox bbox = definition.getBoundingBox();
-            double xMin = bbox.getXMin();
-            double xMax = bbox.getXMax();
-            double yMin = bbox.getYMin();
-            double yMax = bbox.getYMax();
-            double zMin = bbox.getZMin();
-            double zMax = bbox.getZMax();
-
-            // Create rotated shapes for each facing direction
-            // JSON bbox is assumed to be for EAST facing: thin in X, at west edge (x near 0)
-            // When FACING=direction, the block faces that direction but is attached to the OPPOSITE wall
-            return ImmutableMap.of(
-                    // EAST: Faces east, attached to WEST wall (thin in X, west edge x near 0)
-                    Direction.EAST, Block.createCuboidShape(
-                            xMin * 16, yMin * 16, zMin * 16,
-                            xMax * 16, yMax * 16, zMax * 16),
-                    // WEST: Faces west, attached to EAST wall (thin in X, east edge x near 16)
-                    Direction.WEST, Block.createCuboidShape(
-                            (1 - xMax) * 16, yMin * 16, zMin * 16,
-                            (1 - xMin) * 16, yMax * 16, zMax * 16),
-                    // SOUTH: Faces south, attached to NORTH wall (thin in Z, north edge z near 0)
-                    Direction.SOUTH, Block.createCuboidShape(
-                            zMin * 16, yMin * 16, xMin * 16,
-                            zMax * 16, yMax * 16, xMax * 16),
-                    // NORTH: Faces north, attached to SOUTH wall (thin in Z, south edge z near 16)
-                    Direction.NORTH, Block.createCuboidShape(
-                            zMin * 16, yMin * 16, (1 - xMax) * 16,
-                            zMax * 16, yMax * 16, (1 - xMin) * 16)
-            );
-        }
-    }
-
-    /**
-     * Creates default shapes if no bounding box is defined
-     */
-    private static Map<Direction, VoxelShape> createDefaultShapes() {
-        return ImmutableMap.of(
-                Direction.NORTH, Block.createCuboidShape(0, 0, 14, 16, 16, 16),
-                Direction.SOUTH, Block.createCuboidShape(0, 0, 0, 16, 16, 2),
-                Direction.EAST, Block.createCuboidShape(0, 0, 0, 2, 16, 16),
-                Direction.WEST, Block.createCuboidShape(14, 0, 0, 16, 16, 16)
-        );
     }
 
     @Override
@@ -201,12 +123,12 @@ public class WCMountedBlock extends Block implements WCBlockDef {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return shapesByFacing.get(state.get(FACING));
+        return shapes.get(state.get(FACING));
     }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return shapesByFacing.get(state.get(FACING));
+        return shapes.get(state.get(FACING));
     }
 
     @Override

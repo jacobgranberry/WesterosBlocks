@@ -1,6 +1,7 @@
 package com.westerosblocks.block.custom;
 
-import com.google.common.collect.ImmutableMap;
+import com.westerosblocks.block.shape.Box;
+import com.westerosblocks.block.shape.FacingShapes;
 import com.westerosblocks.data.BlockDefinition;
 import com.westerosblocks.utils.ModProperties;
 import net.minecraft.block.*;
@@ -47,11 +48,11 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
     // Key used for the shape map when the block has no STATE property.
     private static final String DEFAULT_KEY = "";
 
-    // shapes keyed by stateID (or DEFAULT_KEY) -> FACING -> shape
-    private final Map<String, Map<Direction, VoxelShape>> shapesByState;
+    // shapes keyed by stateID (or DEFAULT_KEY)
+    private final Map<String, FacingShapes> shapesByState;
 
     public WCMountedMirrorBlock(Settings settings, BlockDefinition def,
-                                Map<String, Map<Direction, VoxelShape>> shapes,
+                                Map<String, FacingShapes> shapes,
                                 boolean allowUnsupported, boolean toggleOnUse) {
         super(settings);
         this.def = def;
@@ -73,7 +74,7 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
 
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
-            Map<String, Map<Direction, VoxelShape>> shapes = createRotatedShapes(definition);
+            Map<String, FacingShapes> shapes = createShapes(definition);
             boolean allowUnsupported = definition.isAllowUnsupported();
             boolean toggleOnUse = definition.toggleOnUse();
             return StagedProperties.builder()
@@ -87,8 +88,8 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
          * (falling back to the block-level box). Single/no-state blocks get one set
          * under {@link #DEFAULT_KEY}.
          */
-        private static Map<String, Map<Direction, VoxelShape>> createRotatedShapes(BlockDefinition definition) {
-            Map<String, Map<Direction, VoxelShape>> result = new LinkedHashMap<>();
+        private static Map<String, FacingShapes> createShapes(BlockDefinition definition) {
+            Map<String, FacingShapes> result = new LinkedHashMap<>();
 
             if (definition.getStateCount() > 1) {
                 for (BlockDefinition.StateVariant state : definition.getStates()) {
@@ -96,8 +97,7 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
                     if (bbox == null && definition.hasBoundingBox()) {
                         bbox = definition.getBoundingBox();
                     }
-                    result.put(state.getStateID(),
-                            bbox != null ? computeShapesForBox(bbox) : createDefaultShapes());
+                    result.put(state.getStateID(), shapesFor(bbox));
                 }
                 return result;
             }
@@ -110,49 +110,23 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
             } else if (definition.hasBoundingBox()) {
                 bbox = definition.getBoundingBox();
             }
-            result.put(DEFAULT_KEY, bbox != null ? computeShapesForBox(bbox) : createDefaultShapes());
+            result.put(DEFAULT_KEY, shapesFor(bbox));
             return result;
         }
 
         /**
-         * Creates rotated VoxelShapes for all 4 facings. The JSON bbox is authored for
-         * the NORTH facing (Y=0); each other facing rotates that box about Y to match
-         * the model's blockstate rotation (N=0, E=90, S=180, W=270).
+         * The bounding box is authored for the NORTH facing (the model at "y": 0); a block
+         * with no box is a full cube.
          */
-        private static Map<Direction, VoxelShape> computeShapesForBox(BlockDefinition.BoundingBox bbox) {
-            double x0 = bbox.getXMin() * 16, x1 = bbox.getXMax() * 16;
-            double y0 = bbox.getYMin() * 16, y1 = bbox.getYMax() * 16;
-            double z0 = bbox.getZMin() * 16, z1 = bbox.getZMax() * 16;
-
-            VoxelShape north = Block.createCuboidShape(x0, y0, z0, x1, y1, z1);
-            // EAST (y=90):  newX = [16-z1, 16-z0], newZ = [x0, x1]
-            VoxelShape east = Block.createCuboidShape(16 - z1, y0, x0, 16 - z0, y1, x1);
-            // SOUTH (y=180): newX = [16-x1, 16-x0], newZ = [16-z1, 16-z0]
-            VoxelShape south = Block.createCuboidShape(16 - x1, y0, 16 - z1, 16 - x0, y1, 16 - z0);
-            // WEST (y=270):  newX = [z0, z1], newZ = [16-x1, 16-x0]
-            VoxelShape west = Block.createCuboidShape(z0, y0, 16 - x1, z1, y1, 16 - x0);
-
-            return ImmutableMap.of(
-                    Direction.NORTH, north,
-                    Direction.EAST, east,
-                    Direction.SOUTH, south,
-                    Direction.WEST, west
-            );
-        }
-
-        private static Map<Direction, VoxelShape> createDefaultShapes() {
-            VoxelShape full = VoxelShapes.fullCube();
-            return ImmutableMap.of(
-                    Direction.NORTH, full,
-                    Direction.EAST, full,
-                    Direction.SOUTH, full,
-                    Direction.WEST, full
-            );
+        private static FacingShapes shapesFor(BlockDefinition.BoundingBox bbox) {
+            return bbox != null
+                    ? FacingShapes.of(Direction.NORTH, Box.of(bbox))
+                    : FacingShapes.uniform(VoxelShapes.fullCube());
         }
     }
 
-    private static Map<String, Map<Direction, VoxelShape>> wrapDefault() {
-        return ImmutableMap.of(DEFAULT_KEY, Factory.createDefaultShapes());
+    private static Map<String, FacingShapes> wrapDefault() {
+        return Map.of(DEFAULT_KEY, Factory.shapesFor(null));
     }
 
     @Override
@@ -246,7 +220,7 @@ public class WCMountedMirrorBlock extends Block implements WCBlockDef {
 
     private VoxelShape getShape(BlockState state) {
         String key = (STATE != null && state.contains(STATE)) ? state.get(STATE) : DEFAULT_KEY;
-        Map<Direction, VoxelShape> byFacing = shapesByState.get(key);
+        FacingShapes byFacing = shapesByState.get(key);
         if (byFacing == null) {
             byFacing = shapesByState.values().iterator().next();
         }

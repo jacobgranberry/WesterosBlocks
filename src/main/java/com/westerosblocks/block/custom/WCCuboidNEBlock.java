@@ -15,9 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.WorldAccess;
 
-import com.westerosblocks.data.BlockDefinition.CuboidElement.CuboidRotation;
 
-import java.util.List;
 
 public class WCCuboidNEBlock extends WCCuboidBlock {
     public static final DirectionProperty FACING = DirectionProperty.of("facing", Direction.EAST, Direction.NORTH);
@@ -36,28 +34,7 @@ public class WCCuboidNEBlock extends WCCuboidBlock {
     }
 
     public WCCuboidNEBlock(AbstractBlock.Settings settings, BlockDefinition def, boolean doToggleOnUse) {
-        super(settings, def, 2, doToggleOnUse);  // modelsPerState = 2 (EAST, NORTH)
-
-        // Rotate cuboids for NORTH facing
-        int stcnt = def.getStateCount();
-        for (int stidx = 0; stidx < stcnt; stidx++) {
-            int off = stidx * this.modelsPerState;
-
-            // Rotate base cuboids by 90° for NORTH
-            List<BlockDefinition.CuboidElement> baseCuboids = cuboid_by_facing[off];
-            if (baseCuboids != null && !baseCuboids.isEmpty()) {
-                for (BlockDefinition.CuboidElement cuboid : baseCuboids) {
-                    cuboid_by_facing[off + 1].add(cuboid.rotateCuboid(CuboidRotation.ROTY90));  // NORTH
-                }
-            }
-        }
-
-        // Compute shapes from rotated cuboids
-        for (int i = 0; i < cuboid_by_facing.length; i++) {
-            if (SHAPE_BY_INDEX[i] == null) {
-                SHAPE_BY_INDEX[i] = computeShapeFromCuboids(cuboid_by_facing[i]);
-            }
-        }
+        super(settings, def, doToggleOnUse);
 
         BlockState defbs = this.getDefaultState()
             .with(WATERLOGGED, false)
@@ -130,9 +107,12 @@ public class WCCuboidNEBlock extends WCCuboidBlock {
         }
     }
 
+    /**
+     * The NORTH model is the east model turned a quarter clockwise ({@code "y": 90} in its
+     * blockstate), which is the east geometry turned to face south.
+     */
     @Override
-    protected int getIndexFromState(BlockState state) {
-        int off = super.getIndexFromState(state);  // stateIdx × modelsPerState
-        return state.get(FACING) == Direction.EAST ? off : off + 1;  // EAST=+0, NORTH=+1
+    protected Direction shapeFacing(BlockState state) {
+        return state.get(FACING) == Direction.EAST ? Direction.EAST : Direction.SOUTH;
     }
-}
+}
