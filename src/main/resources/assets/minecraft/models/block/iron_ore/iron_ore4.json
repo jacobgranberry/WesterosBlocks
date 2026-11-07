@@ -1,13 +1,13 @@
 {
   "parent": "westerosblocks:block/untinted/cube",
   "textures": {
-    "down": "minecraft:block/iron_ore/iron_ore4",
-    "up": "minecraft:block/iron_ore/iron_ore4",
-    "north": "minecraft:block/iron_ore/iron_ore4",
-    "south": "minecraft:block/iron_ore/iron_ore4",
-    "west": "minecraft:block/iron_ore/iron_ore4",
-    "east": "minecraft:block/iron_ore/iron_ore4",
-    "particle": "minecraft:block/iron_ore/iron_ore4"
+    "down": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "up": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "north": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "south": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "west": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "east": "westerosblocks:block/vanilla/iron_ore/iron_ore4",
+    "particle": "westerosblocks:block/vanilla/iron_ore/iron_ore4"
   }
 }
 

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/tinted_cross",
   "textures": {
-    "cross": "minecraft:block/fern/fern4"
+    "cross": "westerosblocks:block/vanilla/fern/fern4"
   }
 }

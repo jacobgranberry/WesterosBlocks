@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/vine/base",
   "textures": {
-    "vines": "minecraft:block/vine/side5"
+    "vines": "westerosblocks:block/vanilla/vine/side5"
   }
 }

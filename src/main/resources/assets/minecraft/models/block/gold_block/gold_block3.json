@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "minecraft:block/gold_block/gold_block3"
+    "all": "westerosblocks:block/vanilla/gold_block/gold_block3"
   }
 }

@@ -1,13 +1,13 @@
 {
   "parent": "westerosblocks:block/untinted/cube",
   "textures": {
-    "down": "minecraft:block/gold_ore/gold_ore3",
-    "up": "minecraft:block/gold_ore/gold_ore3",
-    "north": "minecraft:block/gold_ore/gold_ore3",
-    "south": "minecraft:block/gold_ore/gold_ore3",
-    "west": "minecraft:block/gold_ore/gold_ore3",
-    "east": "minecraft:block/gold_ore/gold_ore3",
-    "particle": "minecraft:block/gold_ore/gold_ore3"
+    "down": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "up": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "north": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "south": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "west": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "east": "westerosblocks:block/vanilla/gold_ore/gold_ore3",
+    "particle": "westerosblocks:block/vanilla/gold_ore/gold_ore3"
   }
 }
 
