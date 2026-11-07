@@ -31636,8 +31636,8 @@
       ],
       "renderLayer": "cutout",
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/birch"
+        "westerosblocks:grass",
+        "westerosblocks:birch"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -31663,8 +31663,8 @@
       ],
       "renderLayer": "cutout",
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/foliage_jungle"
+        "westerosblocks:grass",
+        "westerosblocks:foliage_jungle"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -31690,8 +31690,8 @@
       ],
       "renderLayer": "cutout",
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/foliage_oak"
+        "westerosblocks:grass",
+        "westerosblocks:foliage_oak"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -31717,8 +31717,8 @@
       ],
       "renderLayer": "cutout",
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/foliage_palm"
+        "westerosblocks:grass",
+        "westerosblocks:foliage_palm"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -31764,8 +31764,8 @@
       ],
       "renderLayer": "cutout",
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/pine"
+        "westerosblocks:grass",
+        "westerosblocks:pine"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -32005,7 +32005,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "isTinted": true,
       "cuboids": [
         {
@@ -32082,7 +32082,7 @@
         "snowy_grass/all1"
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "isTinted": true,
       "cuboids": [
         {
@@ -34641,7 +34641,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/reed"
+      "colorMult": "westerosblocks:reed"
     },
     {
       "blockName": "potted_cow_parsely",
@@ -34999,7 +34999,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass"
+      "colorMult": "westerosblocks:grass"
     },
     {
       "blockName": "potted_green_leafy_herb",
@@ -37053,7 +37053,7 @@
       },
       "renderLayer": "cutout",
       "nonOpaque": true,
-      "colorMult": "textures/colormap/furnace",
+      "colorMult": "westerosblocks:furnace",
       "isCustomModel": true,
       "luminance": 10
     },
@@ -37215,7 +37215,7 @@
       },
       "renderLayer": "cutout",
       "nonOpaque": true,
-      "colorMult": "textures/colormap/furnace",
+      "colorMult": "westerosblocks:furnace",
       "isCustomModel": true,
       "luminance": 13
     },
@@ -38362,7 +38362,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "apricot_fruit_leaves",
@@ -38411,7 +38411,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "blackberry_bush",
@@ -38460,7 +38460,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "blueberry_bush",
@@ -38509,7 +38509,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "cherry_fruit_leaves",
@@ -38558,7 +38558,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "hop_fruit_leaves",
@@ -38607,7 +38607,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "juniper_bush",
@@ -38656,7 +38656,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/pine"
+      "colorMult": "westerosblocks:pine"
     },
     {
       "blockName": "lemon_fruit_leaves",
@@ -38705,7 +38705,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "lime_fruit_leaves",
@@ -38754,7 +38754,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "olive_fruit_leaves",
@@ -38803,7 +38803,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "orange_fruit_leaves",
@@ -38852,7 +38852,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "palm_leaves",
@@ -38869,7 +38869,7 @@
       "textures": [
         "leaves/palm/all"
       ],
-      "colorMult": "textures/colormap/foliage_palm"
+      "colorMult": "westerosblocks:foliage_palm"
     },
     {
       "blockName": "peach_fruit_leaves",
@@ -38918,7 +38918,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "pink_rose_bush",
@@ -38967,7 +38967,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "plum_fruit_leaves",
@@ -39016,7 +39016,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "pomegranate_fruit_leaves",
@@ -39065,7 +39065,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "purple_grape_fruit_leaves",
@@ -39114,7 +39114,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "raspberry_bush",
@@ -39163,7 +39163,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "red_rose_bush",
@@ -39212,7 +39212,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "snowy_spruce_leaves",
@@ -39309,7 +39309,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "white_rose_bush",
@@ -39358,7 +39358,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "yellow_rose_bush",
@@ -39407,7 +39407,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "chili_pepper_leaves",
@@ -39456,7 +39456,7 @@
           "weight": 2
         }
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "archery_target",
@@ -40531,7 +40531,7 @@
       "creativeTab": "westeros_test_tab",
       "mapColor": "DARK_GREEN",
       "label": "Spruce Leaves Slab",
-      "colorMult": "textures/colormap/pine",
+      "colorMult": "westerosblocks:pine",
       "renderLayer": "cutout",
       "nonOpaque": true,
       "options": {
@@ -41922,7 +41922,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/dead_bush",
+      "colorMult": "westerosblocks:dead_bush",
       "boundingBox": {
         "xMin": 0.3,
         "xMax": 0.7,
@@ -42142,7 +42142,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "boundingBox": {
         "xMin": 0.3,
         "xMax": 0.7,
@@ -43828,7 +43828,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "boundingBox": {
         "xMin": 0.3,
         "xMax": 0.7,
@@ -44599,7 +44599,7 @@
       "textures": [
         "sand_block/sand_skeleton"
       ],
-      "colorMult": "textures/colormap/sand"
+      "colorMult": "westerosblocks:sand"
     },
     {
       "blockName": "apple_basket_slab",
@@ -45159,7 +45159,7 @@
       "isTinted": true,
       "creativeTab": "westeros_grass_dirt_tab",
       "label": "Grass Slab",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "randomTextures": [
         {
           "textures": [
@@ -46512,7 +46512,7 @@
       "textures": [
         "stone_block/keystone_grey"
       ],
-      "colorMult": "textures/colormap/small_stone_brick"
+      "colorMult": "westerosblocks:small_stone_brick"
     },
     {
       "blockName": "high_class_utility_block",
@@ -47775,7 +47775,7 @@
           ]
         }
       ],
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "isTinted": true
     },
     {
@@ -60068,7 +60068,7 @@
       "isTinted": true,
       "creativeTab": "westeros_grass_dirt_tab",
       "label": "Grass Stairs",
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "options": {
         "unconnect": false
       },
@@ -60580,8 +60580,8 @@
         "transparent"
       ],
       "colorMults": [
-        "textures/colormap/grass",
-        "textures/colormap/birch"
+        "westerosblocks:grass",
+        "westerosblocks:birch"
       ],
       "isCustomModel": true,
       "boundingBox": {
@@ -61014,7 +61014,7 @@
       ],
       "renderLayer": "cutout",
       "nonOpaque": true,
-      "colorMult": "textures/colormap/moss_dappled"
+      "colorMult": "westerosblocks:moss_dappled"
     },
     {
       "blockName": "falling_water_block_four",
@@ -61185,7 +61185,7 @@
       ],
       "renderLayer": "cutout",
       "nonOpaque": true,
-      "colorMult": "textures/colormap/foliage_vine"
+      "colorMult": "westerosblocks:foliage_vine"
     },
     {
       "blockName": "arbor_brick_ornate_wall",
@@ -61528,7 +61528,7 @@
       "nonOpaque": true,
       "alphaRender": true,
       "renderLayer": "cutout_mipped",
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockName": "birch_hedge",
@@ -61553,7 +61553,7 @@
       "nonOpaque": true,
       "alphaRender": true,
       "renderLayer": "cutout_mipped",
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockName": "jungle_hedge",
@@ -61578,7 +61578,7 @@
       "nonOpaque": true,
       "alphaRender": true,
       "renderLayer": "cutout_mipped",
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockName": "spruce_hedge",
@@ -61603,7 +61603,7 @@
       "nonOpaque": true,
       "alphaRender": true,
       "renderLayer": "cutout_mipped",
-      "colorMult": "textures/colormap/pine"
+      "colorMult": "westerosblocks:pine"
     },
     {
       "blockName": "piled_bones_wall",
@@ -62531,7 +62531,7 @@
         }
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/reed"
+      "colorMult": "westerosblocks:reed"
     },
     {
       "blockName": "chain_block_harness",
@@ -63002,7 +63002,7 @@
         "jungle_tall_fern/side"
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass"
+      "colorMult": "westerosblocks:grass"
     },
     {
       "blockName": "jungle_tall_grass",
@@ -63019,7 +63019,7 @@
         "jungle_tall_grass/down_side1"
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass"
+      "colorMult": "westerosblocks:grass"
     },
     {
       "blockName": "rope_block_harness",
@@ -63085,7 +63085,7 @@
         "savanna_tall_grass/savanna_tall_grass"
       ],
       "renderLayer": "cutout",
-      "colorMult": "textures/colormap/grass"
+      "colorMult": "westerosblocks:grass"
     },
     {
       "blockName": "smoke",
@@ -63259,7 +63259,7 @@
       "options": {
         "noInWeb": true
       },
-      "colorMult": "textures/colormap/pine",
+      "colorMult": "westerosblocks:pine",
       "renderLayer": "cutout"
     },
     {
@@ -65996,7 +65996,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "Cobblestone Normal Grey",
-      "colorMult": "textures/colormap/cobblestone",
+      "colorMult": "westerosblocks:cobblestone",
       "randomTextures": [
         {
           "textures": {
@@ -66347,7 +66347,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "Dark Cobblestone Green Grey",
-      "colorMult": "textures/colormap/dark_cobble",
+      "colorMult": "westerosblocks:dark_cobble",
       "textures": {
         "all": "cobblestone_dark/green_grey/all"
       }
@@ -67098,7 +67098,7 @@
       ],
       "creativeTab": "westeros_sand_gravel_tab",
       "baseLabel": "Desert Sand",
-      "colorMult": "textures/colormap/sand",
+      "colorMult": "westerosblocks:sand",
       "textures": {
         "all": "sand_block/sand_desert"
       }
@@ -67890,7 +67890,7 @@
       ],
       "creativeTab": "westeros_fieldstone_tab",
       "baseLabel": "Fieldstone Light Grey",
-      "colorMult": "textures/colormap/faint_light_grey_stone",
+      "colorMult": "westerosblocks:faint_light_grey_stone",
       "textures": {
         "all": "fieldstone/light_grey/all",
         "arrow-slit": "fieldstone/light_grey/arrow_slit",
@@ -70188,7 +70188,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "Icy Northern Rubble",
-      "colorMult": "textures/colormap/dark_cobble",
+      "colorMult": "westerosblocks:dark_cobble",
       "randomTextures": [
         {
           "textures": {
@@ -71884,7 +71884,7 @@
       ],
       "creativeTab": "westeros_fieldstone_tab",
       "baseLabel": "Fieldstone Normal Grey",
-      "colorMult": "textures/colormap/light_grey_stone",
+      "colorMult": "westerosblocks:light_grey_stone",
       "textures": {
         "all": "fieldstone/grey/all",
         "arrow-slit": "fieldstone/grey/arrow_slit",
@@ -72635,7 +72635,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "Cobblestone Normal Grey Mossy",
-      "colorMult": "textures/colormap/cobblestone",
+      "colorMult": "westerosblocks:cobblestone",
       "randomTextures": [
         {
           "textures": {
@@ -72692,7 +72692,7 @@
       ],
       "creativeTab": "westeros_quarter_ashlar_tab",
       "baseLabel": "Quarter Ashlar Green Grey Mossy",
-      "colorMult": "textures/colormap/small_stone_brick",
+      "colorMult": "westerosblocks:small_stone_brick",
       "textures": {
         "all": "ashlar_quarter/green_grey_mossy/all"
       }
@@ -72723,7 +72723,7 @@
       ],
       "creativeTab": "westeros_half_ashlar_tab",
       "baseLabel": "Half Ashlar Normal Grey Mossy",
-      "colorMult": "textures/colormap/stone_brick",
+      "colorMult": "westerosblocks:stone_brick",
       "textures": {
         "all": "ashlar_half/grey_mossy/all",
         "arrow-slit": "ashlar_half/grey_mossy/arrow_slit",
@@ -73000,7 +73000,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "Northern Rubble",
-      "colorMult": "textures/colormap/dark_cobble",
+      "colorMult": "westerosblocks:dark_cobble",
       "randomTextures": [
         {
           "textures": {
@@ -74969,7 +74969,7 @@
       ],
       "creativeTab": "westeros_sand_gravel_tab",
       "baseLabel": "Pebbles Dry Eastern Islands",
-      "colorMult": "textures/colormap/eastern_island",
+      "colorMult": "westerosblocks:eastern_island",
       "randomTextures": [
         {
           "textures": {
@@ -75563,7 +75563,7 @@
       ],
       "creativeTab": "westeros_sand_gravel_tab",
       "baseLabel": "Pebbles Wet Eastern Islands",
-      "colorMult": "textures/colormap/eastern_island",
+      "colorMult": "westerosblocks:eastern_island",
       "randomTextures": [
         {
           "textures": {
@@ -77811,7 +77811,7 @@
       ],
       "creativeTab": "westeros_cobblestone_tab",
       "baseLabel": "River Rubble",
-      "colorMult": "textures/colormap/light_grey_stone",
+      "colorMult": "westerosblocks:light_grey_stone",
       "randomTextures": [
         {
           "textures": {
@@ -77899,7 +77899,7 @@
       ],
       "creativeTab": "westeros_sand_gravel_tab",
       "baseLabel": "Sand Stones",
-      "colorMult": "textures/colormap/sand",
+      "colorMult": "westerosblocks:sand",
       "textures": {
         "all": "sand_block/sand_stones"
       }
@@ -78783,7 +78783,7 @@
       ],
       "creativeTab": "westeros_quarter_ashlar_tab",
       "baseLabel": "Quarter Rounded Ashlar Normal Grey",
-      "colorMult": "textures/colormap/small_smooth_stone_brick",
+      "colorMult": "westerosblocks:small_smooth_stone_brick",
       "textures": {
         "all": "ashlar_quarter_rounded/grey/all",
         "arrow-slit": "ashlar_quarter_rounded/grey/arrow_slit",
@@ -78817,7 +78817,7 @@
       ],
       "creativeTab": "westeros_quarter_ashlar_tab",
       "baseLabel": "Quarter Ashlar Green Grey",
-      "colorMult": "textures/colormap/small_stone_brick",
+      "colorMult": "westerosblocks:small_stone_brick",
       "textures": {
         "all": "ashlar_quarter/green_grey/all",
         "arrow-slit": "ashlar_quarter/green_grey/arrow_slit",
@@ -78937,7 +78937,7 @@
       "creativeTab": "westeros_grass_dirt_tab",
       "baseLabel": "Snowy Grass Heavy",
       "ambientOcclusion": false,
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "textures": {
         "bottom": "snowy_grass/all1",
         "top": "snowy_grass/all1",
@@ -78975,7 +78975,7 @@
       "creativeTab": "westeros_grass_dirt_tab",
       "baseLabel": "Snowy Grass Light",
       "ambientOcclusion": false,
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "textures": {
         "bottom": "snowy_grass/all1",
         "top": "snowy_grass/all1",
@@ -79013,7 +79013,7 @@
       "creativeTab": "westeros_grass_dirt_tab",
       "baseLabel": "Snowy Grass Medium",
       "ambientOcclusion": false,
-      "colorMult": "textures/colormap/grass",
+      "colorMult": "westerosblocks:grass",
       "textures": {
         "bottom": "snowy_grass/all1",
         "top": "snowy_grass/all1",
@@ -79887,7 +79887,7 @@
       ],
       "creativeTab": "westeros_half_ashlar_tab",
       "baseLabel": "Half Ashlar Normal Grey",
-      "colorMult": "textures/colormap/stone_brick",
+      "colorMult": "westerosblocks:stone_brick",
       "textures": {
         "all": "ashlar_half/grey/all",
         "arrow-slit": "ashlar_half/grey/arrow_slit",
@@ -80726,7 +80726,7 @@
         }
       },
       "baseLabel": "TerrainSet Eastern Islands",
-      "colorMult": "textures/colormap/eastern_island",
+      "colorMult": "westerosblocks:eastern_island",
       "textures": {
         "all": "terrainset/east/random_4x4"
       }
@@ -81736,7 +81736,7 @@
           "locked": true
         }
       },
-      "colorMult": "textures/colormap/cobblestone",
+      "colorMult": "westerosblocks:cobblestone",
       "textures": {
         "bottom": "test_block/d_texture",
         "top": "test_block/u_texture",

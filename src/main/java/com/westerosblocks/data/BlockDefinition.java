@@ -73,7 +73,7 @@ public class BlockDefinition {
     String colorMult;
 
     /**
-     * Array of colormap paths for multi-colormap tinting (e.g., ["textures/colormap/grass", "textures/colormap/birch"])
+     * Array of Polytone colormap ids for multi-colormap tinting (e.g., ["westerosblocks:grass", "westerosblocks:birch"])
      */
     @SerializedName("colorMults")
     private List<String> colorMults;

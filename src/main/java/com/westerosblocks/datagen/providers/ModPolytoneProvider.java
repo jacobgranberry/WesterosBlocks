@@ -145,15 +145,13 @@ public class ModPolytoneProvider implements DataProvider {
     }
 
     /**
-     * Extracts the colormap identifier from a colorMult value
-     * E.g., "textures/colormap/sand" -> "sand", "birch" -> "birch"
+     * Extracts the colormap identifier from a colorMult value.
+     * E.g., "westerosblocks:sand" -> "sand", the older "textures/colormap/sand" -> "sand",
+     * "birch" -> "birch". Colormaps live in assets/westerosblocks/polytone/colormaps/.
      */
     private String extractColormapId(String colorMult) {
-        if (colorMult.contains("/")) {
-            String[] parts = colorMult.split("/");
-            return parts[parts.length - 1];
-        }
-        return colorMult;
+        String id = colorMult.substring(colorMult.indexOf(':') + 1);
+        return id.substring(id.lastIndexOf('/') + 1);
     }
 
     @Override

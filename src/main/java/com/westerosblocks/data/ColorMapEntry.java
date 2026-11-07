@@ -29,18 +29,16 @@ public class ColorMapEntry {
 
     /**
      * Extracts the colormap identifier from the colorMult value.
-     * E.g., "textures/colormap/sand" -> "sand", "#FFFFFF" -> "#FFFFFF"
+     * E.g., "westerosblocks:sand" -> "sand", the older "textures/colormap/sand" -> "sand",
+     * "#FFFFFF" -> "#FFFFFF"
      * @return The colormap identifier
      */
     public String getColormapId() {
         if (colorMult == null) {
             return null;
         }
-        if (colorMult.contains("/")) {
-            String[] parts = colorMult.split("/");
-            return parts[parts.length - 1];
-        }
-        return colorMult;
+        String id = colorMult.substring(colorMult.indexOf(':') + 1);
+        return id.substring(id.lastIndexOf('/') + 1);
     }
 
     public boolean hasColorMult() {

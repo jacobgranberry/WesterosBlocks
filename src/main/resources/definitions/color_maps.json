@@ -8,13 +8,13 @@
         "minecraft:iron_ore",
         "minecraft:gold_ore"
       ],
-      "colorMult": "textures/colormap/stone"
+      "colorMult": "westerosblocks:stone"
     },
     {
       "blockNames": [
         "minecraft:terracotta"
       ],
-      "colorMult": "textures/colormap/light_grey_stone"
+      "colorMult": "westerosblocks:light_grey_stone"
     },
     {
       "blockNames": [
@@ -24,13 +24,13 @@
         "minecraft:cracked_stone_bricks",
         "minecraft:stone_brick_stairs"
       ],
-      "colorMult": "textures/colormap/stone_brick"
+      "colorMult": "westerosblocks:stone_brick"
     },
     {
       "blockNames": [
         "minecraft:sugar_cane"
       ],
-      "colorMult": "textures/colormap/reed"
+      "colorMult": "westerosblocks:reed"
     },
     {
       "blockNames": [
@@ -44,43 +44,43 @@
         "minecraft:lever",
         "westerosblocks:cobblestone_stairs"
       ],
-      "colorMult": "textures/colormap/cobblestone"
+      "colorMult": "westerosblocks:cobblestone"
     },
     {
       "blockNames": [
         "minecraft:furnace"
       ],
-      "colorMult": "textures/colormap/furnace"
+      "colorMult": "westerosblocks:furnace"
     },
     {
       "blockNames": [
         "minecraft:clay"
       ],
-      "colorMult": "textures/colormap/clay"
+      "colorMult": "westerosblocks:clay"
     },
     {
       "blockNames": [
         "minecraft:sand"
       ],
-      "colorMult": "textures/colormap/sand"
+      "colorMult": "westerosblocks:sand"
     },
     {
       "blockNames": [
         "minecraft:jungle_leaves"
       ],
-      "colorMult": "textures/colormap/foliage_jungle"
+      "colorMult": "westerosblocks:foliage_jungle"
     },
     {
       "blockNames": [
         "minecraft:oak_leaves"
       ],
-      "colorMult": "textures/colormap/foliage_oak"
+      "colorMult": "westerosblocks:foliage_oak"
     },
     {
       "blockNames": [
         "minecraft:vine"
       ],
-      "colorMult": "textures/colormap/foliage_vine"
+      "colorMult": "westerosblocks:foliage_vine"
     },
     {
       "blockNames": [
@@ -92,13 +92,13 @@
       "blockNames": [
         "minecraft:birch_leaves"
       ],
-      "colorMult": "textures/colormap/birch"
+      "colorMult": "westerosblocks:birch"
     },
     {
       "blockNames": [
         "minecraft:spruce_leaves"
       ],
-      "colorMult": "textures/colormap/pine"
+      "colorMult": "westerosblocks:pine"
     }
   ]
 }

@@ -39,8 +39,10 @@ The generated files go to `src/main/generated/`, which is gitignored. Run
 
 - A block opts in with `colorMult` (or `colorMults`) in
   `definitions/WesterosBlocks.json`, for example
-  `"colorMult": "textures/colormap/stone"`. The provider keeps the last path
-  segment (`stone`) as the colormap id.
+  `"colorMult": "westerosblocks:stone"`, which names
+  `polytone/colormaps/stone.png`. The provider drops the namespace and keeps
+  the last path segment, so the older spelling `textures/colormap/stone` still
+  works, but write new entries as ids.
 - Vanilla blocks are recoloured through `definitions/color_maps.json`
   (`ColorMapLoader`). Entries whose `colorMult` is a hex colour (`#...`) are
   skipped by the provider.
