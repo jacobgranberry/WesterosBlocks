@@ -1,7 +1,9 @@
 package com.westerosblocks.datagen.providers;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.WesterosCreativeModeTabs;
 import com.westerosblocks.data.BlockDefinition;
@@ -39,6 +41,10 @@ public class ModPolytoneProvider implements DataProvider {
             return CompletableFuture.completedFuture(null);
         }
 
+        // Blocks with several colorMults, keyed by their ordered colormap ids. Each list
+        // entry maps to the tint index of the same position (colorMults[0] -> tintindex 0).
+        Map<List<String>, List<String>> blocksByIndexedColormaps = new HashMap<>();
+
         // Group blocks by their colorMult value(s)
         for (BlockDefinition definition : registry.getAllDefinitions()) {
             // Skip test blocks (blocks in westeros_test_tab)
@@ -48,20 +54,22 @@ public class ModPolytoneProvider implements DataProvider {
 
             String blockId = WesterosBlocks.MOD_ID + ":" + definition.getBlockName();
 
-            // Handle single colorMult
+            // Multiple colorMults: one modifier with an indexed colormap. Polytone 1.21.1
+            // replaces (not merges) the colormap when two modifiers target one block, so
+            // listing the block under each colormap separately would tint every index the same.
+            if (definition.hasColorMults()) {
+                List<String> colormapIds = definition.getColorMults().stream()
+                        .map(this::extractColormapId)
+                        .toList();
+                blocksByIndexedColormaps.computeIfAbsent(colormapIds, k -> new ArrayList<>()).add(blockId);
+                continue;
+            }
+
+            // Single colorMult: one colormap for every tint index
             if (definition.hasColorMult()) {
                 String colorMult = definition.getColorMult();
                 String colormapId = extractColormapId(colorMult);
                 blocksByColormap.computeIfAbsent(colormapId, k -> new ArrayList<>()).add(blockId);
-            }
-
-            // Handle multiple colorMults (blocks can have multiple colormaps applied)
-            if (definition.hasColorMults()) {
-                List<String> colorMults = definition.getColorMults();
-                for (String colorMult : colorMults) {
-                    String colormapId = extractColormapId(colorMult);
-                    blocksByColormap.computeIfAbsent(colormapId, k -> new ArrayList<>()).add(blockId);
-                }
             }
         }
 
@@ -86,7 +94,7 @@ public class ModPolytoneProvider implements DataProvider {
             WesterosBlocks.LOGGER.info("Added {} vanilla/external blocks from color_maps.json", vanillaBlockCount);
         }
 
-        if (blocksByColormap.isEmpty()) {
+        if (blocksByColormap.isEmpty() && blocksByIndexedColormaps.isEmpty()) {
             WesterosBlocks.LOGGER.info("No blocks with colorMult found - skipping Polytone generation");
             return CompletableFuture.completedFuture(null);
         }
@@ -96,38 +104,44 @@ public class ModPolytoneProvider implements DataProvider {
 
         for (Map.Entry<String, List<String>> entry : blocksByColormap.entrySet()) {
             String colormapId = entry.getKey();
-            List<String> blockIds = entry.getValue();
-
-            // Sort block IDs for consistent output
-            Collections.sort(blockIds);
-
-            // Create JSON object
-            JsonObject json = new JsonObject();
-
-            JsonArray targetsArray = new JsonArray();
-            blockIds.forEach(targetsArray::add);
-            json.add("targets", targetsArray);
-
-            json.addProperty("colormap", WesterosBlocks.MOD_ID + ":" + colormapId);
-
-            // Write to block_modifiers folder
-            Identifier blockFileId = Identifier.of(WesterosBlocks.MOD_ID, colormapId + "_tinted_blocks");
-            Path blockOutputPath = blockModifiersPathResolver.resolveJson(blockFileId);
-            CompletableFuture<?> blockFuture = DataProvider.writeToPath(writer, json, blockOutputPath);
-            futures.add(blockFuture);
-
-            // Write to item_modifiers folder (same content)
-            Identifier itemFileId = Identifier.of(WesterosBlocks.MOD_ID, colormapId + "_tinted_blocks");
-            Path itemOutputPath = itemModifiersPathResolver.resolveJson(itemFileId);
-            CompletableFuture<?> itemFuture = DataProvider.writeToPath(writer, json, itemOutputPath);
-            futures.add(itemFuture);
+            writeModifiers(writer, futures, colormapId + "_tinted_blocks", entry.getValue(),
+                    new JsonPrimitive(WesterosBlocks.MOD_ID + ":" + colormapId));
         }
 
+        for (Map.Entry<List<String>, List<String>> entry : blocksByIndexedColormaps.entrySet()) {
+            List<String> colormapIds = entry.getKey();
+            JsonObject indexed = new JsonObject();
+            for (int i = 0; i < colormapIds.size(); i++) {
+                indexed.addProperty(String.valueOf(i), WesterosBlocks.MOD_ID + ":" + colormapIds.get(i));
+            }
+            writeModifiers(writer, futures, String.join("__", colormapIds) + "_tinted_blocks", entry.getValue(), indexed);
+        }
+
+        int fileCount = blocksByColormap.size() + blocksByIndexedColormaps.size();
         WesterosBlocks.LOGGER.info("Successfully generated {} Polytone modifier files ({} in block_modifiers, {} in item_modifiers)",
-                blocksByColormap.size() * 2, blocksByColormap.size(), blocksByColormap.size());
+                fileCount * 2, fileCount, fileCount);
 
         // Return combined future of all writes
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
+
+    /**
+     * Writes the same modifier (targets + colormap) to block_modifiers and item_modifiers.
+     */
+    private void writeModifiers(DataWriter writer, List<CompletableFuture<?>> futures, String fileName,
+                                List<String> blockIds, JsonElement colormap) {
+        // Sort block IDs for consistent output
+        Collections.sort(blockIds);
+
+        JsonObject json = new JsonObject();
+        JsonArray targetsArray = new JsonArray();
+        blockIds.forEach(targetsArray::add);
+        json.add("targets", targetsArray);
+        json.add("colormap", colormap);
+
+        Identifier fileId = Identifier.of(WesterosBlocks.MOD_ID, fileName);
+        futures.add(DataProvider.writeToPath(writer, json, blockModifiersPathResolver.resolveJson(fileId)));
+        futures.add(DataProvider.writeToPath(writer, json, itemModifiersPathResolver.resolveJson(fileId)));
     }
 
     /**

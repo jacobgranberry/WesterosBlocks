@@ -44,6 +44,9 @@ The generated files go to `src/main/generated/`, which is gitignored. Run
 - Vanilla blocks are recoloured through `definitions/color_maps.json`
   (`ColorMapLoader`). Entries whose `colorMult` is a hex colour (`#...`) are
   skipped by the provider.
+- A block with `colorMults` gets one indexed colormap instead: entry N of the
+  list tints `tintindex` N (`bushy_grass_*`: 0 = grass, 1 = foliage). These
+  go in `<id0>__<id1>_tinted_blocks.json`.
 - Blocks in the test creative tab are skipped.
 - A `.png` in `colormaps/` with no `.json` becomes a colormap that samples
   biome temperature (x) and downfall (y), with the triangular lookup vanilla
@@ -114,11 +117,6 @@ models only appear because Polytone is not in the dev runtime.
 
 ## Known issues found while writing this (not fixed)
 
-- The `bushy_grass_*` blocks use two tint indexes with
-  `colorMults: [grass, <foliage>]`, but `ModPolytoneProvider` writes one plain
-  colormap per file. Each block lands in two files, and only one colormap
-  survives for both indexes. Which one wins depends on load order. The fix is to
-  emit an indexed colormap (`{"0": .., "1": ..}`) for blocks with `colorMults`.
 - `westerosblocks:wildfire` is defined in `custom_particles/` and the `wildfire`
   block has `"particle": "wildfire"`, but no block modifier spawns it and no
   Java code reads that field. The particle never appears.
