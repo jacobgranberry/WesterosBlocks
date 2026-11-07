@@ -29,9 +29,9 @@ public class WCCuboidNSEWBlock extends WCCuboidBlock {
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
             boolean doToggleOnUse = definition.toggleOnUse();
 
-            tempSTATE = stateProperty;
-
-            return new WCCuboidNSEWBlock(settings, definition, doToggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .construct(() -> new WCCuboidNSEWBlock(settings, definition, doToggleOnUse));
         }
     }
 

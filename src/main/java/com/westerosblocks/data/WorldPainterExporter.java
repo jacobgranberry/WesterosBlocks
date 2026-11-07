@@ -1,5 +1,7 @@
 package com.westerosblocks.data;
 
+import com.westerosblocks.block.BlockTypes;
+import com.westerosblocks.block.BlockType;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.block.ModBlocks;
 import net.fabricmc.loader.api.FabricLoader;
@@ -229,10 +231,7 @@ public class WorldPainterExporter {
     private static boolean isInsubstantial(BlockDefinition def) {
         if (def == null) return false;
         if (def.hasNoCollision()) return true;
-        return switch (def.getBlockType()) {
-            case "plant", "crop", "torch", "fire", "vines", "rail", "fan", "web", "flower" -> true;
-            default -> false;
-        };
+        return BlockTypes.has(def, BlockType.Trait.INSUBSTANTIAL);
     }
 
     // NOTE: treeRelated/vegetation drive WorldPainter's *destructive* "remove trees" / "remove
@@ -242,18 +241,12 @@ public class WorldPainterExporter {
 
     private static boolean isVegetation(BlockDefinition def) {
         if (def == null) return false;
-        return switch (def.getBlockType()) {
-            case "plant", "crop", "vines", "flower", "leaves", "sapling" -> true;
-            default -> false;
-        };
+        return BlockTypes.has(def, BlockType.Trait.VEGETATION);
     }
 
     private static boolean isTreeRelated(BlockDefinition def) {
         if (def == null) return false;
-        return switch (def.getBlockType()) {
-            case "leaves", "sapling" -> true;
-            default -> false;
-        };
+        return BlockTypes.has(def, BlockType.Trait.TREE_RELATED);
     }
 
     private static int safeLuminance(BlockState state) {

@@ -1,5 +1,7 @@
 package com.westerosblocks.data;
 
+import com.westerosblocks.block.BlockTypes;
+import com.westerosblocks.block.BlockType;
 import com.google.gson.*;
 import com.westerosblocks.WesterosBlocks;
 import net.fabricmc.loader.api.FabricLoader;
@@ -211,6 +213,12 @@ public class ConsolidatedDefinitionLoader {
             return false;
         }
 
+        if (BlockTypes.of(definition) == null) {
+            WesterosBlocks.LOGGER.error("Block definition '{}' has unknown blockType '{}' in: {}",
+                definition.getBlockName(), definition.getBlockType(), definitionsFilePath);
+            return false;
+        }
+
         // Initialize the definition after loading (normalizes textures, inherits properties, etc.)
         try {
             definition.doInit();
@@ -260,7 +268,7 @@ public class ConsolidatedDefinitionLoader {
                     && definition.getStates().stream().allMatch(s -> s.isCustomModel());
             boolean skipTextureCheck = definition.hasCustomModel()
                     || stateLevelCustomModel
-                    || "particle".equals(definition.getBlockType());
+                    || BlockTypes.has(definition, BlockType.Trait.NO_BLOCK_TEXTURES);
             if (!skipTextureCheck) {
                 // Check if block has textures defined either directly, in randomTextures, or in states
                 boolean hasTextures = false;

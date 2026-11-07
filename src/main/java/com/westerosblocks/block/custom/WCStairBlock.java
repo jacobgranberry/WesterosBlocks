@@ -42,11 +42,7 @@ public class WCStairBlock extends Block implements Waterloggable, WCBlockDef {
     public static final BooleanProperty UNCONNECT = BooleanProperty.of("unconnect");
     public static final IntProperty CONNECTSTATE = ModProperties.CONNECTSTATE;
 
-    protected static ModProperties.StateProperty tempSTATE;
     public ModProperties.StateProperty STATE;
-
-    protected static BooleanProperty tempUNCONNECT;
-    protected static IntProperty tempCONNECTSTATE;
 
     protected boolean toggleOnUse = false;
     public final boolean unconnect;
@@ -74,10 +70,6 @@ public class WCStairBlock extends Block implements Waterloggable, WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
 
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
             boolean doToggleOnUse = definition.toggleOnUse();
 
             // Extract options properties
@@ -86,14 +78,11 @@ public class WCStairBlock extends Block implements Waterloggable, WCBlockDef {
             boolean doConnectstate = opts != null && Boolean.TRUE.equals(opts.getConnectstate());
             boolean noUvlock = opts != null && Boolean.TRUE.equals(opts.getNoUvlock());
 
-            if (doUnconnect) {
-                tempUNCONNECT = UNCONNECT;
-            }
-            if (doConnectstate) {
-                tempCONNECTSTATE = CONNECTSTATE;
-            }
-
-            return new WCStairBlock(settings, definition, doToggleOnUse, doUnconnect, doConnectstate, noUvlock);
+            return StagedProperties.builder()
+                    .addIf(doUnconnect, UNCONNECT)
+                    .addIf(doConnectstate, CONNECTSTATE)
+                    .state(stateProperty)
+                    .construct(() -> new WCStairBlock(settings, definition, doToggleOnUse, doUnconnect, doConnectstate, noUvlock));
         }
 
     }
@@ -130,19 +119,7 @@ public class WCStairBlock extends Block implements Waterloggable, WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(FACING, HALF, SHAPE, WATERLOGGED);
-        if (tempUNCONNECT != null) {
-            builder.add(tempUNCONNECT);
-            tempUNCONNECT = null;
-        }
-        if (tempCONNECTSTATE != null) {
-            builder.add(tempCONNECTSTATE);
-            tempCONNECTSTATE = null;
-        }
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            tempSTATE = null;
-            builder.add(STATE);
-        }
+        STATE = StagedProperties.appendTo(builder).state();
     }
 
     @Override
@@ -199,12 +176,10 @@ public class WCStairBlock extends Block implements Waterloggable, WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (this.STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
         return ActionResult.PASS;

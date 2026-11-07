@@ -32,31 +32,22 @@ public class WCWallBlock extends WallBlock implements WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
 
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
 
             boolean unconnect = definition.isUnconnect();
             boolean connectState = definition.isConnectState();
             String size = definition.getWallSize();
             boolean toggleOnUse = definition.toggleOnUse();
 
-            if (unconnect) {
-                tempUNCONNECT = UNCONNECT;
-            }
-            if (connectState) {
-                tempCONNECT_STATE = CONNECT_STATE;
-            }
-
-            return new WCWallBlock(settings, definition, unconnect, connectState, size, toggleOnUse);
+            return StagedProperties.builder()
+                    .addIf(unconnect, UNCONNECT)
+                    .addIf(connectState, CONNECT_STATE)
+                    .state(stateProperty)
+                    .construct(() -> new WCWallBlock(settings, definition, unconnect, connectState, size, toggleOnUse));
         }
     }
 
     public static final BooleanProperty UNCONNECT = BooleanProperty.of("unconnect");
     public static final IntProperty CONNECT_STATE = ModProperties.CONNECTSTATE;
-    protected static BooleanProperty tempUNCONNECT;
-    protected static IntProperty tempCONNECT_STATE;
-    protected static ModProperties.StateProperty tempSTATE;
 
     private final boolean hasUnconnect;
     private final boolean hasConnectState;
@@ -109,20 +100,7 @@ public class WCWallBlock extends WallBlock implements WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         super.appendProperties(builder);
-        
-        if (tempUNCONNECT != null) {
-            builder.add(tempUNCONNECT);
-            tempUNCONNECT = null;
-        }
-        if (tempCONNECT_STATE != null) {
-            builder.add(tempCONNECT_STATE);
-            tempCONNECT_STATE = null;
-        }
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            builder.add(tempSTATE);
-            tempSTATE = null;
-        }
+        STATE = StagedProperties.appendTo(builder).state();
     }
 
     @Override
@@ -151,22 +129,14 @@ public class WCWallBlock extends WallBlock implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (toggleOnUse && STATE != null && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(STATE)) {
-                state = state.cycle(STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
-            }
-        } else if (toggleOnUse && hasConnectState && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            int currentState = state.get(CONNECT_STATE);
-            int nextState = (currentState + 1) % 4;
-            world.setBlockState(pos, state.with(CONNECT_STATE, nextState), Block.NOTIFY_ALL);
-            world.syncWorldEvent(player, 1006, pos, 0);
-            return ActionResult.success(world.isClient);
+        if (!toggleOnUse) {
+            return ActionResult.PASS;
         }
-
-        return ActionResult.PASS;
+        // Walls with definition states toggle those; otherwise they step the connect state.
+        if (STATE != null) {
+            return CreativeToggle.cycle(state, world, pos, player, STATE);
+        }
+        return hasConnectState ? CreativeToggle.cycle(state, world, pos, player, CONNECT_STATE) : ActionResult.PASS;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.westerosblocks.block.blockentity;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.block.ModBlocks;
 import com.westerosblocks.block.blockentity.custom.WCBigDoorBlockEntity;
@@ -26,7 +27,7 @@ public class ModBlockEntities {
         }
 
         // Get all furnace block definitions directly by type
-        for (BlockDefinition definition : registry.getByType("furnace")) {
+        for (BlockDefinition definition : registry.getByType(BlockTypes.FURNACE.id())) {
             Block block = ModBlocks.getAutoRegisteredBlock(definition.getBlockName());
             if (block != null) {
                 BlockEntityType<?> blockEntityType = register(definition.getBlockName(),
@@ -48,7 +49,7 @@ public class ModBlockEntities {
             return;
         }
 
-        for (BlockDefinition definition : registry.getByType("bigdoor")) {
+        for (BlockDefinition definition : registry.getByType(BlockTypes.BIG_DOOR.id())) {
             Block block = ModBlocks.getAutoRegisteredBlock(definition.getBlockName());
             if (block != null) {
                 BlockEntityType<?> blockEntityType = register(definition.getBlockName(),

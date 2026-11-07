@@ -1,5 +1,6 @@
 package com.westerosblocks.block.custom;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.block.ModBlocks;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -31,7 +32,7 @@ public class WCTorchBlock extends TorchBlock implements WCBlockDef {
             AbstractBlock.Settings wallSettings = definition.makeSettings();
             Block wallBlock = new WCWallTorchBlock(wallSettings, definition, allowUnsupported, noParticle);
 
-            String wallTorchName = "wall_" + definition.getBlockName();
+            String wallTorchName = BlockTypes.TORCH.companionName(definition.getBlockName());
             Block registeredWallBlock = ModBlocks.registerBlockWithoutItem(wallTorchName, wallBlock);
 
 

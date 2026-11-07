@@ -83,13 +83,7 @@ public class WCAwningBlock extends Block implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (def.toggleOnUse() && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            state = state.cycle(RAISED);
-            world.setBlockState(pos, state, Block.NOTIFY_ALL);
-            world.syncWorldEvent(player, 1006, pos, 0);
-            return ActionResult.success(world.isClient);
-        }
-        return ActionResult.PASS;
+        return def.toggleOnUse() ? CreativeToggle.cycle(state, world, pos, player, RAISED) : ActionResult.PASS;
     }
 
     @Override

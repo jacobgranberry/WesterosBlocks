@@ -1,5 +1,6 @@
 package com.westerosblocks.datagen.custom;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.WesterosBlocks;
 import com.westerosblocks.data.BlockDefinition;
 import com.westerosblocks.datagen.ModModels;
@@ -46,7 +47,7 @@ public class BuntingBlockExporter extends BaseBlockExporter {
         registerParentedItemModel(generator, block, wallModelId);
 
         // Ceiling variant blockstate
-        String ceilingName = definition.getBlockName() + "_ceiling";
+        String ceilingName = BlockTypes.BUNTING.companionName(definition.getBlockName());
         Identifier ceilingId = WesterosBlocks.id(ceilingName);
         if (!Registries.BLOCK.containsId(ceilingId)) {
             WesterosBlocks.LOGGER.warn("Could not find ceiling block for bunting: {}", ceilingName);

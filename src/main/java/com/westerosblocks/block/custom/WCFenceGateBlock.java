@@ -38,15 +38,11 @@ public class WCFenceGateBlock extends FenceGateBlock implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.locked) {
-            if (player.isCreative() && player.getMainHandStack().isEmpty()) {
-                return super.onUse(state, world, pos, player, hit);
-            } else {
-                return ActionResult.PASS;
-            }
-        } else {
-            return super.onUse(state, world, pos, player, hit);
+        // Locked gates only open for a creative player with an empty hand.
+        if (this.locked && !CreativeToggle.canToggle(player)) {
+            return ActionResult.PASS;
         }
+        return super.onUse(state, world, pos, player, hit);
     }
 
     public BlockDefinition getDefinition() {

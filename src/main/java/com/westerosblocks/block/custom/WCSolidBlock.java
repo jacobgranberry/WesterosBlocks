@@ -27,15 +27,12 @@ public class WCSolidBlock extends Block implements WCBlockDef {
     protected boolean toggleOnUse = false;
 
     protected boolean connectState;
-    protected static IntProperty tempCONNECTSTATE;
     public static final IntProperty CONNECTSTATE = ModProperties.CONNECTSTATE;
 
-    protected static ModProperties.StateProperty tempSTATE;
     protected ModProperties.StateProperty STATE;
 
     public boolean symmetrical;
-    protected static BooleanProperty tempSYMMETRICAL;
-    public static BooleanProperty SYMMETRICAL = ModProperties.SYMMETRICAL;
+    public static final BooleanProperty SYMMETRICAL = ModProperties.SYMMETRICAL;
 
     public static class Factory extends BlockFactory {
         @Override
@@ -43,24 +40,16 @@ public class WCSolidBlock extends Block implements WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
 
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
             boolean doConnectState = definition.isConnectState();
             boolean doToggleOnUse = definition.toggleOnUse();
             boolean doSymmetrical = definition.isSymmetrical();
             boolean doAddStates = (stateProperty != null);
 
-            if (doConnectState) {
-                tempCONNECTSTATE = CONNECTSTATE;
-            }
-
-            if (doSymmetrical) {
-                tempSYMMETRICAL = SYMMETRICAL;
-            }
-
-            return new WCSolidBlock(settings, definition, doConnectState, doToggleOnUse, doAddStates, doSymmetrical);
+            return StagedProperties.builder()
+                    .addIf(doConnectState, CONNECTSTATE)
+                    .addIf(doSymmetrical, SYMMETRICAL)
+                    .state(stateProperty)
+                    .construct(() -> new WCSolidBlock(settings, definition, doConnectState, doToggleOnUse, doAddStates, doSymmetrical));
         }
     }
 
@@ -91,19 +80,7 @@ public class WCSolidBlock extends Block implements WCBlockDef {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        if (tempCONNECTSTATE != null) {
-            builder.add(tempCONNECTSTATE);
-            tempCONNECTSTATE = null;
-        }
-        if (tempSYMMETRICAL != null) {
-            builder.add(tempSYMMETRICAL);
-            tempSYMMETRICAL = null;
-        }
-        if (tempSTATE != null) {
-            STATE = tempSTATE;  // Assign to instance field BEFORE nulling
-            builder.add(tempSTATE);
-            tempSTATE = null;
-        }
+        STATE = StagedProperties.appendTo(builder).state();
         super.appendProperties(builder);
     }
 
@@ -118,15 +95,7 @@ public class WCSolidBlock extends Block implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(STATE)) {
-                state = state.cycle(STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
-            }
-        }
-        return ActionResult.PASS;
+        return toggleOnUse ? CreativeToggle.cycle(state, world, pos, player, STATE) : ActionResult.PASS;
     }
 
     @Override

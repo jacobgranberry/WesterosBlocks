@@ -20,10 +20,8 @@ public class WCSlabBlock extends SlabBlock implements WCBlockDef {
     protected boolean toggleOnUse = false;
 
     protected boolean connectState;
-    protected static IntProperty tempCONNECTSTATE;
     public static final IntProperty CONNECTSTATE = ModProperties.CONNECTSTATE;
 
-    protected static ModProperties.StateProperty tempSTATE;
     protected ModProperties.StateProperty STATE;
 
     public static class Factory extends BlockFactory {
@@ -32,18 +30,14 @@ public class WCSlabBlock extends SlabBlock implements WCBlockDef {
             AbstractBlock.Settings settings = definition.makeSettings();
 
             ModProperties.StateProperty stateProperty = definition.buildStateProperty();
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
             boolean doConnectState = definition.isConnectState();
             boolean doToggleOnUse = definition.toggleOnUse();
             boolean doAddStates = (stateProperty != null);
 
-            if (doConnectState) {
-                tempCONNECTSTATE = CONNECTSTATE;
-            }
-
-            return new WCSlabBlock(settings, definition, doConnectState, doToggleOnUse, doAddStates);
+            return StagedProperties.builder()
+                    .addIf(doConnectState, CONNECTSTATE)
+                    .state(stateProperty)
+                    .construct(() -> new WCSlabBlock(settings, definition, doConnectState, doToggleOnUse, doAddStates));
         }
     }
 
@@ -68,29 +62,13 @@ public class WCSlabBlock extends SlabBlock implements WCBlockDef {
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(STATE)) {
-                state = state.cycle(STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
-            }
-        }
-        return ActionResult.PASS;
+        return toggleOnUse ? CreativeToggle.cycle(state, world, pos, player, STATE) : ActionResult.PASS;
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         super.appendProperties(builder);
-        if (tempCONNECTSTATE != null) {
-            builder.add(tempCONNECTSTATE);
-            tempCONNECTSTATE = null;
-        }
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            builder.add(tempSTATE);
-            tempSTATE = null;
-        }
+        STATE = StagedProperties.appendTo(builder).state();
     }
 
     public BlockDefinition getDefinition() {

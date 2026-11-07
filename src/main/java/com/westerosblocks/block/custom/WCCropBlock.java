@@ -19,15 +19,10 @@ public class WCCropBlock extends WCPlantBlock {
             boolean layerSensitive = definition.isLayerSensitive();
             boolean toggleOnUse = definition.toggleOnUse();
 
-            if (layerSensitive) {
-                tempLAYERS = Properties.LAYERS;
-            }
-
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
-            return new WCCropBlock(settings, definition, layerSensitive, toggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .addIf(layerSensitive, Properties.LAYERS)
+                    .construct(() -> new WCCropBlock(settings, definition, layerSensitive, toggleOnUse));
         }
     }
 

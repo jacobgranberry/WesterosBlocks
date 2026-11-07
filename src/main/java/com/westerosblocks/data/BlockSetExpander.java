@@ -1,5 +1,6 @@
 package com.westerosblocks.data;
 
+import com.westerosblocks.block.BlockTypes;
 import com.westerosblocks.WesterosBlocks;
 
 import java.util.*;
@@ -28,21 +29,21 @@ public class BlockSetExpander {
     // Maps variant names to block types
     private static final Map<String, String> VARIANT_TYPES = new HashMap<>();
     static {
-        VARIANT_TYPES.put("stairs", "stair");
-        VARIANT_TYPES.put("hopper", "cuboid");
-        VARIANT_TYPES.put("tip", "cuboid");
-        VARIANT_TYPES.put("carpet", "cuboid");
-        VARIANT_TYPES.put("fence_gate", "fencegate");
-        VARIANT_TYPES.put("half_door", "cuboid-nsew");
-        VARIANT_TYPES.put("cover", "rail");
-        VARIANT_TYPES.put("hollow_hopper", "cuboid");
-        VARIANT_TYPES.put("directional", "cuboid-nsew");
-        VARIANT_TYPES.put("path", "cuboid");
-        VARIANT_TYPES.put("window_frame", "solid");
-        VARIANT_TYPES.put("window_frame_mullion", "solid");
-        VARIANT_TYPES.put("arrow_slit", "solid");
-        VARIANT_TYPES.put("arrow_slit_window", "solid");
-        VARIANT_TYPES.put("arrow_slit_ornate", "solid");
+        VARIANT_TYPES.put("stairs", BlockTypes.STAIR.id());
+        VARIANT_TYPES.put("hopper", BlockTypes.CUBOID.id());
+        VARIANT_TYPES.put("tip", BlockTypes.CUBOID.id());
+        VARIANT_TYPES.put("carpet", BlockTypes.CUBOID.id());
+        VARIANT_TYPES.put("fence_gate", BlockTypes.FENCE_GATE.id());
+        VARIANT_TYPES.put("half_door", BlockTypes.CUBOID_NSEW.id());
+        VARIANT_TYPES.put("cover", BlockTypes.RAIL.id());
+        VARIANT_TYPES.put("hollow_hopper", BlockTypes.CUBOID.id());
+        VARIANT_TYPES.put("directional", BlockTypes.CUBOID_NSEW.id());
+        VARIANT_TYPES.put("path", BlockTypes.CUBOID.id());
+        VARIANT_TYPES.put("window_frame", BlockTypes.SOLID.id());
+        VARIANT_TYPES.put("window_frame_mullion", BlockTypes.SOLID.id());
+        VARIANT_TYPES.put("arrow_slit", BlockTypes.SOLID.id());
+        VARIANT_TYPES.put("arrow_slit_window", BlockTypes.SOLID.id());
+        VARIANT_TYPES.put("arrow_slit_ornate", BlockTypes.SOLID.id());
         // For other variants, blockType = variant name
     }
 

@@ -32,9 +32,6 @@ public class WCPlantBlock extends Block implements WCBlockDef {
     private IntProperty LAYERS;
     private ModProperties.StateProperty STATE;
 
-    protected static IntProperty tempLAYERS;
-    protected static ModProperties.StateProperty tempSTATE;
-
     private static final VoxelShape DEFAULT_PLANT_SHAPE = Block.createCuboidShape(2.0, 0.0, 2.0, 14.0, 13.0, 14.0);
 
     public static final VoxelShape[] SHAPE_BY_LAYER = new VoxelShape[] {
@@ -60,15 +57,10 @@ public class WCPlantBlock extends Block implements WCBlockDef {
             boolean layerSensitive = definition.isLayerSensitive();
             boolean toggleOnUse = definition.toggleOnUse();
 
-            if (layerSensitive) {
-                tempLAYERS = Properties.LAYERS;
-            }
-
-            if (stateProperty != null) {
-                tempSTATE = stateProperty;
-            }
-
-            return new WCPlantBlock(settings, definition, layerSensitive, toggleOnUse);
+            return StagedProperties.builder()
+                    .state(stateProperty)
+                    .addIf(layerSensitive, Properties.LAYERS)
+                    .construct(() -> new WCPlantBlock(settings, definition, layerSensitive, toggleOnUse));
         }
     }
 
@@ -141,26 +133,17 @@ public class WCPlantBlock extends Block implements WCBlockDef {
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(WATERLOGGED);
-        if (tempSTATE != null) {
-            STATE = tempSTATE;
-            tempSTATE = null;
-            builder.add(STATE);
-        }
-        if (tempLAYERS != null) {
-            LAYERS = tempLAYERS;
-            tempLAYERS = null;
-            builder.add(LAYERS);
-        }
+        StagedProperties staged = StagedProperties.appendTo(builder);
+        STATE = staged.state();
+        LAYERS = staged.has(Properties.LAYERS) ? Properties.LAYERS : null;
     }
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-        if (this.toggleOnUse && (this.STATE != null) && player.isCreative() && player.getMainHandStack().isEmpty()) {
-            if (state.contains(this.STATE)) {
-                state = state.cycle(this.STATE);
-                world.setBlockState(pos, state, Block.NOTIFY_ALL);
-                world.syncWorldEvent(player, 1006, pos, 0);
-                return ActionResult.success(world.isClient);
+        if (this.toggleOnUse) {
+            ActionResult toggled = CreativeToggle.cycle(state, world, pos, player, STATE);
+            if (toggled != ActionResult.PASS) {
+                return toggled;
             }
         }
         return ActionResult.PASS;
