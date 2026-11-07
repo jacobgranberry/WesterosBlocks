@@ -17,19 +17,14 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
-import com.westerosblocks.data.BlockDefinition.CuboidElement.CuboidRotation;
 
-import java.util.List;
 
 public class WCCuboid16WayBlock extends WCCuboidBlock {
     public static final IntProperty ROTATION = Properties.ROTATION;
-    private static final int ROTATIONS = 16;
-    private static final CuboidRotation[] SHAPE_ROTATIONS = {
-        null, CuboidRotation.ROTY90, CuboidRotation.ROTY180, CuboidRotation.ROTY270
-    };
 
     public static class Factory extends BlockFactory {
         @Override
@@ -45,36 +40,7 @@ public class WCCuboid16WayBlock extends WCCuboidBlock {
     }
 
     public WCCuboid16WayBlock(AbstractBlock.Settings settings, BlockDefinition def, boolean doToggleOnUse) {
-        super(settings, def, 16, doToggleOnUse);  // modelsPerState = 16 (16 visual rotations)
-
-        // Build rotations - create 16 entries but only 4 unique rotations (one per 90° quadrant)
-        // Visual 22.5° increments are handled by model rotation in the exporter
-        int stcnt = def.getStateCount();
-        for (int stidx = 0; stidx < stcnt; stidx++) {
-            int idx = stidx * this.modelsPerState;
-
-            List<BlockDefinition.CuboidElement> baseCuboids = cuboid_by_facing[idx];
-            if (baseCuboids != null && !baseCuboids.isEmpty()) {
-                // Create 16 rotation entries, but only 4 unique geometries
-                for (int i = 1; i < ROTATIONS; i++) {
-                    // Determine which 90° rotation to use based on quadrant
-                    // Rotations 0-3: 0°, 4-7: 90°, 8-11: 180°, 12-15: 270°
-                    int quadrant = i / 4;  // 0, 1, 2, or 3
-                    CuboidRotation rot = SHAPE_ROTATIONS[quadrant];
-
-                    for (BlockDefinition.CuboidElement cuboid : baseCuboids) {
-                        cuboid_by_facing[idx + i].add(rot != null ? cuboid.rotateCuboid(rot) : cuboid);
-                    }
-                }
-            }
-        }
-
-        // Compute shapes from rotated cuboids
-        for (int i = 0; i < cuboid_by_facing.length; i++) {
-            if (SHAPE_BY_INDEX[i] == null) {
-                SHAPE_BY_INDEX[i] = computeShapeFromCuboids(cuboid_by_facing[i]);
-            }
-        }
+        super(settings, def, doToggleOnUse);
 
         // Set default state with rotation 0
         BlockState defbs = this.getDefaultState()
@@ -94,14 +60,16 @@ public class WCCuboid16WayBlock extends WCCuboidBlock {
     }
 
     /**
-     * Override to add rotation offset to state index.
-     * Index = (stateIdx × modelsPerState) + rotation
+     * Shapes only follow whole quarter turns: rotations 0-3 use the east shape, 4-7 south,
+     * 8-11 west and 12-15 north. The 22.5 degree steps between are model-only.
      */
     @Override
-    protected int getIndexFromState(BlockState state) {
-        int off = super.getIndexFromState(state);  // stateIdx × modelsPerState
-        int rotation = state.get(ROTATION);
-        return off + rotation;  // Add rotation (0-15)
+    protected Direction shapeFacing(BlockState state) {
+        Direction facing = Direction.EAST;
+        for (int i = 0; i < state.get(ROTATION) / 4; i++) {
+            facing = facing.rotateYClockwise();
+        }
+        return facing;
     }
 
     @Override

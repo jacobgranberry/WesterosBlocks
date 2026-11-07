@@ -1,5 +1,7 @@
 package com.westerosblocks.block.custom;
 
+import com.westerosblocks.block.shape.Box;
+import com.westerosblocks.block.shape.FacingShapes;
 import com.westerosblocks.data.BlockDefinition;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -28,8 +30,9 @@ public class WCCuboidNSEWStackBlock extends WCCuboidBlock implements WCBlockDef 
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
 
     protected final boolean allowHalfBreak;
-    // Shadow parent's SHAPE_BY_INDEX with stack-specific shapes (8 = 4 facings × 2 halves)
-    protected final VoxelShape[] SHAPE_BY_INDEX;
+    // Each half's outline comes from its stack element's bounding box, authored facing east.
+    private final FacingShapes lowerShapes;
+    private final FacingShapes upperShapes;
 
     public static class Factory extends BlockFactory {
         @Override
@@ -42,24 +45,12 @@ public class WCCuboidNSEWStackBlock extends WCCuboidBlock implements WCBlockDef 
     }
 
     public WCCuboidNSEWStackBlock(AbstractBlock.Settings settings, BlockDefinition def, boolean doAllowHalfBreak) {
-        super(settings, def, 8, false);  // modelsPerState = 8 (4 facings × 2 halves)
+        super(settings, def, false);
         this.allowHalfBreak = doAllowHalfBreak;
 
-        // Initialize stack-specific shapes (uses StackElements, not cuboids)
-        this.SHAPE_BY_INDEX = new VoxelShape[8];
-
-        if (def != null && def.hasStackElements() && def.getStack().size() >= 2) {
-            BlockDefinition.StackElement bottomElement = def.getStack().get(0);
-            BlockDefinition.StackElement topElement = def.getStack().get(1);
-
-            initializeShapesForHalf(bottomElement, 0);
-
-            initializeShapesForHalf(topElement, 4);
-        } else {
-            for (int i = 0; i < 8; i++) {
-                SHAPE_BY_INDEX[i] = VoxelShapes.fullCube();
-            }
-        }
+        boolean hasStack = def != null && def.hasStackElements() && def.getStack().size() >= 2;
+        this.lowerShapes = shapesFor(hasStack ? def.getStack().get(0) : null);
+        this.upperShapes = shapesFor(hasStack ? def.getStack().get(1) : null);
 
         this.setDefaultState(this.getDefaultState()
             .with(WATERLOGGED, false)
@@ -67,83 +58,11 @@ public class WCCuboidNSEWStackBlock extends WCCuboidBlock implements WCBlockDef 
             .with(FACING, Direction.EAST));
     }
 
-    private void initializeShapesForHalf(BlockDefinition.StackElement element, int baseIndex) {
+    private static FacingShapes shapesFor(BlockDefinition.StackElement element) {
         if (element != null && element.hasBoundingBox()) {
-            BlockDefinition.BoundingBox bbox = element.getBoundingBox();
-
-            SHAPE_BY_INDEX[baseIndex] = createRotatedShape(bbox, 0); // EAST (0°)
-            SHAPE_BY_INDEX[baseIndex + 1] = createRotatedShape(bbox, 90); // SOUTH (90°)
-            SHAPE_BY_INDEX[baseIndex + 2] = createRotatedShape(bbox, 180); // WEST (180°)
-            SHAPE_BY_INDEX[baseIndex + 3] = createRotatedShape(bbox, 270); // NORTH (270°)
-        } else {
-            for (int i = 0; i < 4; i++) {
-                SHAPE_BY_INDEX[baseIndex + i] = VoxelShapes.fullCube();
-            }
+            return FacingShapes.of(Direction.EAST, Box.of(element.getBoundingBox()));
         }
-    }
-
-    private VoxelShape createRotatedShape(BlockDefinition.BoundingBox bbox, int rotationDegrees) {
-        double xMin = bbox.getXMin();
-        double yMin = bbox.getYMin();
-        double zMin = bbox.getZMin();
-        double xMax = bbox.getXMax();
-        double yMax = bbox.getYMax();
-        double zMax = bbox.getZMax();
-
-        // Rotate around Y-axis (center point is 0.5, 0.5)
-        double centerX = 0.5;
-        double centerZ = 0.5;
-
-        // Calculate corners relative to center
-        double x1 = xMin - centerX;
-        double z1 = zMin - centerZ;
-        double x2 = xMax - centerX;
-        double z2 = zMax - centerZ;
-
-        double newX1, newZ1, newX2, newZ2;
-
-        switch (rotationDegrees) {
-            case 0: // EAST - no rotation
-                newX1 = x1;
-                newZ1 = z1;
-                newX2 = x2;
-                newZ2 = z2;
-                break;
-            case 90: // SOUTH - rotate 90° clockwise
-                newX1 = -z2;
-                newZ1 = x1;
-                newX2 = -z1;
-                newZ2 = x2;
-                break;
-            case 180: // WEST - rotate 180°
-                newX1 = -x2;
-                newZ1 = -z2;
-                newX2 = -x1;
-                newZ2 = -z1;
-                break;
-            case 270: // NORTH - rotate 270° clockwise (90° counter-clockwise)
-                newX1 = z1;
-                newZ1 = -x2;
-                newX2 = z2;
-                newZ2 = -x1;
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid rotation: " + rotationDegrees);
-        }
-
-        // Convert back to absolute coordinates
-        newX1 += centerX;
-        newZ1 += centerZ;
-        newX2 += centerX;
-        newZ2 += centerZ;
-
-        // Ensure min < max
-        double finalXMin = Math.min(newX1, newX2);
-        double finalXMax = Math.max(newX1, newX2);
-        double finalZMin = Math.min(newZ1, newZ2);
-        double finalZMax = Math.max(newZ1, newZ2);
-
-        return VoxelShapes.cuboid(finalXMin, yMin, finalZMin, finalXMax, yMax, finalZMax);
+        return FacingShapes.uniform(VoxelShapes.fullCube());
     }
 
     @Override
@@ -152,29 +71,15 @@ public class WCCuboidNSEWStackBlock extends WCCuboidBlock implements WCBlockDef 
         builder.add(FACING, HALF);
     }
 
-    protected int getIndexFromState(BlockState state) {
-        int topOffset = (state.get(HALF) == DoubleBlockHalf.LOWER) ? 0 : 4;
-        return switch (state.get(FACING)) {
-            case SOUTH -> topOffset + 1;
-            case WEST -> topOffset + 2;
-            case NORTH -> topOffset + 3;
-            default -> topOffset; // EAST
-        };
-    }
-
     @Override
-    public VoxelShape getOutlineShape(BlockState state, net.minecraft.world.BlockView world, BlockPos pos, net.minecraft.block.ShapeContext context) {
-        return SHAPE_BY_INDEX[getIndexFromState(state)];
-    }
-
-    @Override
-    public VoxelShape getCollisionShape(BlockState state, net.minecraft.world.BlockView world, BlockPos pos, net.minecraft.block.ShapeContext context) {
-        return SHAPE_BY_INDEX[getIndexFromState(state)];
+    protected VoxelShape shapeFor(BlockState state) {
+        FacingShapes half = state.get(HALF) == DoubleBlockHalf.LOWER ? lowerShapes : upperShapes;
+        return half.get(state.get(FACING));
     }
 
     @Override
     public VoxelShape getCullingShape(BlockState state, net.minecraft.world.BlockView world, BlockPos pos) {
-        return SHAPE_BY_INDEX[getIndexFromState(state)];
+        return shapeFor(state);
     }
 
     @Override

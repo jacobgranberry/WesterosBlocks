@@ -1,8 +1,9 @@
 package com.westerosblocks.block.custom;
 
 import com.westerosblocks.block.BlockTypes;
-import com.google.common.collect.ImmutableMap;
 import com.westerosblocks.block.ModBlocks;
+import com.westerosblocks.block.shape.Box;
+import com.westerosblocks.block.shape.FacingShapes;
 import com.westerosblocks.data.BlockDefinition;
 import net.minecraft.block.*;
 import net.minecraft.item.ItemPlacementContext;
@@ -18,8 +19,6 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 
-import java.util.Map;
-
 public class WCBuntingBlock extends Block implements WCBlockDef {
     protected BlockDefinition def;
     private final boolean allowUnsupported;
@@ -27,15 +26,18 @@ public class WCBuntingBlock extends Block implements WCBlockDef {
 
     public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
 
-    private final Map<Direction, VoxelShape> shapesByFacing;
+    /** Thin panel against the wall, for buntings that define no bounding box. */
+    private static final FacingShapes DEFAULT_SHAPES = FacingShapes.of(Direction.EAST, Box.pixels(0, 0, 0, 2, 16, 16));
 
-    public WCBuntingBlock(Settings settings, BlockDefinition def, Map<Direction, VoxelShape> shapes,
+    private final FacingShapes shapes;
+
+    public WCBuntingBlock(Settings settings, BlockDefinition def, FacingShapes shapes,
                           boolean allowUnsupported, Block ceilingBlock) {
         super(settings);
         this.def = def;
         this.allowUnsupported = allowUnsupported;
         this.ceilingBlock = ceilingBlock;
-        this.shapesByFacing = shapes != null ? shapes : createDefaultShapes();
+        this.shapes = shapes;
         this.setDefaultState(this.getStateManager().getDefaultState()
                 .with(FACING, Direction.NORTH));
     }
@@ -56,51 +58,16 @@ public class WCBuntingBlock extends Block implements WCBlockDef {
 
             // Create wall (main) block with reference to ceiling block
             AbstractBlock.Settings wallSettings = definition.makeSettings();
-            Map<Direction, VoxelShape> wallShapes = createRotatedShapes(definition);
+            // The bounding box is authored facing east, with the wall on its west side.
+            FacingShapes wallShapes = definition.hasBoundingBox()
+                    ? FacingShapes.of(Direction.EAST, Box.of(definition.getBoundingBox()))
+                    : DEFAULT_SHAPES;
             return new WCBuntingBlock(wallSettings, definition, wallShapes, allowUnsupported, registeredCeilingBlock);
-        }
-
-        private static Map<Direction, VoxelShape> createRotatedShapes(BlockDefinition definition) {
-            if (!definition.hasBoundingBox()) {
-                return createDefaultShapes();
-            }
-
-            BlockDefinition.BoundingBox bbox = definition.getBoundingBox();
-            double xMin = bbox.getXMin();
-            double xMax = bbox.getXMax();
-            double yMin = bbox.getYMin();
-            double yMax = bbox.getYMax();
-            double zMin = bbox.getZMin();
-            double zMax = bbox.getZMax();
-
-            return ImmutableMap.of(
-                    Direction.EAST, Block.createCuboidShape(
-                            xMin * 16, yMin * 16, zMin * 16,
-                            xMax * 16, yMax * 16, zMax * 16),
-                    Direction.WEST, Block.createCuboidShape(
-                            (1 - xMax) * 16, yMin * 16, zMin * 16,
-                            (1 - xMin) * 16, yMax * 16, zMax * 16),
-                    Direction.SOUTH, Block.createCuboidShape(
-                            zMin * 16, yMin * 16, xMin * 16,
-                            zMax * 16, yMax * 16, xMax * 16),
-                    Direction.NORTH, Block.createCuboidShape(
-                            zMin * 16, yMin * 16, (1 - xMax) * 16,
-                            zMax * 16, yMax * 16, (1 - xMin) * 16)
-            );
         }
 
         private static VoxelShape createCeilingShape(BlockDefinition definition) {
             return Block.createCuboidShape(4, 12, 4, 12, 16, 12);
         }
-    }
-
-    private static Map<Direction, VoxelShape> createDefaultShapes() {
-        return ImmutableMap.of(
-                Direction.NORTH, Block.createCuboidShape(0, 0, 14, 16, 16, 16),
-                Direction.SOUTH, Block.createCuboidShape(0, 0, 0, 16, 16, 2),
-                Direction.EAST, Block.createCuboidShape(0, 0, 0, 2, 16, 16),
-                Direction.WEST, Block.createCuboidShape(14, 0, 0, 16, 16, 16)
-        );
     }
 
     @Override
@@ -165,12 +132,12 @@ public class WCBuntingBlock extends Block implements WCBlockDef {
 
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return shapesByFacing.get(state.get(FACING));
+        return shapes.get(state.get(FACING));
     }
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return shapesByFacing.get(state.get(FACING));
+        return shapes.get(state.get(FACING));
     }
 
     @Override
