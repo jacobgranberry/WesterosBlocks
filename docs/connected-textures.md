@@ -203,7 +203,8 @@ Details from the code:
 - `assets/minecraft/optifine/ctm/` changes **vanilla** blocks too: wool,
   oak/birch/spruce/jungle planks, glass, iron block, snow, dirt, farmland,
   sandstone, red sandstone, bookshelf and vine. Some match textures the mod adds
-  under the `minecraft` namespace (for example `minecraft:block/dirt/top_bot1`).
+  for those vanilla blocks under `westerosblocks:block/vanilla/` (for example
+  `matchTiles=westerosblocks:textures/block/vanilla/dirt/top_bot1`).
 - Biome or height variants of one texture are separate files: `<name>_a`,
   `<name>_b`, ... with `biomes=`/`heights=`, and `<name>_default` with the
   negated union of all the others' biomes (`biomes=!...`). Because the default

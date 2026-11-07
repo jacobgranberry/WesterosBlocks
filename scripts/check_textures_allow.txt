@@ -1,0 +1,51 @@
+# Known texture problems that scripts/check_textures.py accepts.
+# Format: <kind> <id>   # reason
+# Remove a line once the problem is fixed; the checker reports lines that no
+# longer match anything as stale.
+
+# Placeholder textures in parent (template) models. Datagen-generated child
+# models always override them, so the game never loads these names.
+missing-texture furniture:birch/wood_bench_birch   # models/block/bench/wood_bench_1x1.json
+missing-texture westerosblocks:block/awning/awning_side   # models/block/awnings/awning_*.json
+missing-texture westerosblocks:fancy_blue_carpet   # models/block/rail/template_3d_rail_raised_*.json
+missing-texture westerosblocks:side.block   # models/block/arrow_slits/*.json
+
+# Dead definition entries. pitchfork_block is a custom model that uses
+# block/tools/tools; dark_grey_wood has no window variant to use these.
+missing-texture westerosblocks:block/cuboid_block/pitchfork_left
+missing-texture westerosblocks:block/cuboid_block/pitchfork_right
+missing-texture westerosblocks:block/timber/grey_dark/window_frame
+missing-texture westerosblocks:block/timber/grey_dark/window_frame_mullion
+
+# CTM files that match textures no longer in the repo. Waiting on a decision
+# about connected wood (docs/connected-textures.md, Known problems 2 and 3).
+missing-texture westerosblocks:block/roofing/tiles/tiles_0
+missing-texture westerosblocks:block/roofing/tiles/tiles_1
+missing-texture westerosblocks:block/roofing/tiles/tiles_2
+missing-texture westerosblocks:block/roofing/tiles/tiles_3
+missing-texture westerosblocks:block/roofing/tiles/tiles_4
+missing-texture westerosblocks:block/roofing/tiles/tiles_5
+missing-texture westerosblocks:block/wood/birch/plankctm
+missing-texture westerosblocks:block/wood/birch/woodctm
+missing-texture westerosblocks:block/wood/black/plankctm
+missing-texture westerosblocks:block/wood/black/woodctm
+missing-texture westerosblocks:block/wood/blue/plankctm
+missing-texture westerosblocks:block/wood/blue/woodctm
+missing-texture westerosblocks:block/wood/green/plankctm
+missing-texture westerosblocks:block/wood/green/woodctm
+missing-texture westerosblocks:block/wood/grey/plankctm
+missing-texture westerosblocks:block/wood/grey/woodctm
+missing-texture westerosblocks:block/wood/jungle/plankctm
+missing-texture westerosblocks:block/wood/jungle/woodctm
+missing-texture westerosblocks:block/wood/northern/plankctm
+missing-texture westerosblocks:block/wood/northern/woodctm
+missing-texture westerosblocks:block/wood/oak/plankctm
+missing-texture westerosblocks:block/wood/oak/woodctm
+missing-texture westerosblocks:block/wood/orange/plankctm
+missing-texture westerosblocks:block/wood/orange/woodctm
+missing-texture westerosblocks:block/wood/purple/plankctm
+missing-texture westerosblocks:block/wood/purple/woodctm
+missing-texture westerosblocks:block/wood/spruce/plankctm
+missing-texture westerosblocks:block/wood/spruce/woodctm
+missing-texture westerosblocks:block/wood/white/plankctm
+missing-texture westerosblocks:block/wood/white/woodctm
