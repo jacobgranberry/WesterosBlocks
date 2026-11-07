@@ -1,13 +1,13 @@
 {
   "parent": "westerosblocks:block/untinted/cube",
   "textures": {
-    "down": "minecraft:block/copper_ore/copper_ore3",
-    "up": "minecraft:block/copper_ore/copper_ore3",
-    "north": "minecraft:block/copper_ore/copper_ore3",
-    "south": "minecraft:block/copper_ore/copper_ore3",
-    "west": "minecraft:block/copper_ore/copper_ore3",
-    "east": "minecraft:block/copper_ore/copper_ore3",
-    "particle": "minecraft:block/copper_ore/copper_ore3"
+    "down": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "up": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "north": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "south": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "west": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "east": "westerosblocks:block/vanilla/copper_ore/copper_ore3",
+    "particle": "westerosblocks:block/vanilla/copper_ore/copper_ore3"
   }
 }
 

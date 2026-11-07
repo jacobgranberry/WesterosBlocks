@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/tinted_cross",
   "textures": {
-    "cross": "minecraft:block/grass/grass2"
+    "cross": "westerosblocks:block/vanilla/grass/grass2"
   }
 }

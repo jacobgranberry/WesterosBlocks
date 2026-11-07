@@ -191,7 +191,7 @@
         },
         "colorMult": {
           "type": "string",
-          "description": "Color tinting: hex color (e.g., '#FF0000') or colormap path (e.g., 'textures/colormap/reed')",
+          "description": "Color tinting: hex color (e.g., '#FF0000') or Polytone colormap id (e.g., 'westerosblocks:reed', a PNG in assets/westerosblocks/polytone/colormaps/). The older 'textures/colormap/reed' form still works.",
           "oneOf": [
             {
               "pattern": "^#[0-9A-Fa-f]{6}$",
@@ -199,14 +199,14 @@
             },
             {
               "pattern": "^[^#].*$",
-              "description": "Colormap texture path"
+              "description": "Polytone colormap id"
             }
           ]
         },
         "colorMults": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Array of colormap paths for multi-colormap tinting"
+          "description": "Array of Polytone colormap ids (e.g., 'westerosblocks:grass') for multi-colormap tinting; entry N tints tintindex N"
         },
         "mapColor": {
           "type": "string",

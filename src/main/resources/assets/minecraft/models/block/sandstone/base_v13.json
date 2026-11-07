@@ -3,10 +3,10 @@
   "textures": {
     "down": "minecraft:block/sandstone_bottom",
     "up": "minecraft:block/sandstone_top",
-    "north": "minecraft:block/sandstone/side13",
-    "south": "minecraft:block/sandstone/side13",
-    "west": "minecraft:block/sandstone/side13",
-    "east": "minecraft:block/sandstone/side13",
-    "particle": "minecraft:block/sandstone/side13"
+    "north": "westerosblocks:block/vanilla/sandstone/side13",
+    "south": "westerosblocks:block/vanilla/sandstone/side13",
+    "west": "westerosblocks:block/vanilla/sandstone/side13",
+    "east": "westerosblocks:block/vanilla/sandstone/side13",
+    "particle": "westerosblocks:block/vanilla/sandstone/side13"
   }
 }

@@ -1,8 +1,8 @@
 {
   "parent": "minecraft:block/cube_bottom_top",
   "textures": {
-    "top": "minecraft:block/glowstone/top",
-    "bottom": "minecraft:block/glowstone/bottom",
+    "top": "westerosblocks:block/vanilla/glowstone/top",
+    "bottom": "westerosblocks:block/vanilla/glowstone/bottom",
     "side": "minecraft:block/glowstone"
   }
 }

@@ -19,9 +19,9 @@
     "ambientocclusion": false,
     "textures": {
         "particle": "minecraft:block/snow",
-        "updown": "minecraft:block/snow/top_bottom",
-        "northsouth": "minecraft:block/snow/north_south",
-        "eastwest": "minecraft:block/snow/east_west"
+        "updown": "westerosblocks:block/vanilla/snow/top_bottom",
+        "northsouth": "westerosblocks:block/vanilla/snow/north_south",
+        "eastwest": "westerosblocks:block/vanilla/snow/east_west"
     },
     "elements": [
         {   "from": [ 0, 0, 0 ],

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cross",
   "textures": {
-    "cross": "minecraft:block/cobweb/side5"
+    "cross": "westerosblocks:block/vanilla/cobweb/side5"
   }
 }

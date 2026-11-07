@@ -1,10 +1,10 @@
 {
   "ambientocclusion": false,
   "textures": {
-    "particle": "minecraft:block/cooking_pot/side1",
+    "particle": "westerosblocks:block/vanilla/cooking_pot/side1",
     "top": "minecraft:block/cauldron_top",
     "bottom": "minecraft:block/cauldron_bottom",
-    "side": "minecraft:block/cooking_pot/side1",
+    "side": "westerosblocks:block/vanilla/cooking_pot/side1",
     "inside": "minecraft:block/cauldron_inner",
     "water": "minecraft:block/water_still"
   },

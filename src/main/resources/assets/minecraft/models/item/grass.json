@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "minecraft:block/grass/grass1"
+    "layer0": "westerosblocks:block/vanilla/grass/grass1"
   }
 }

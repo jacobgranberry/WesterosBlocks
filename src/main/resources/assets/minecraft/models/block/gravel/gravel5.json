@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "minecraft:block/gravel/gravel5"
+    "all": "westerosblocks:block/vanilla/gravel/gravel5"
   }
 }

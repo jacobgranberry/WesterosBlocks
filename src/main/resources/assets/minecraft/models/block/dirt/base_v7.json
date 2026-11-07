@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/cube_column",
   "textures": {
-    "end": "minecraft:block/dirt/top_bot7",
+    "end": "westerosblocks:block/vanilla/dirt/top_bot7",
     "side": "minecraft:block/dirt"
   }
 }

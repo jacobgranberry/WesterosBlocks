@@ -156,6 +156,35 @@ scripts/                # one-off Python tools (CTM to Continuity conversion)
 is authoritative and drives creative-tab order. It is large: search it with
 `grep` or a JSON tool rather than reading it whole.
 
+## Texture layout
+
+Textures are named in several systems at once (definitions, models, CTM,
+Polytone, particles, Java), and none of them fails loudly on a bad name. Keep to
+these rules, and run `python scripts/check_textures.py` after `runDatagen`
+whenever you add, move, rename or delete a texture. It must report 0 errors;
+known exceptions live in `scripts/check_textures_allow.txt` with a reason.
+`--unused` lists textures nothing references.
+
+- A mod block texture lives only at
+  `assets/westerosblocks/textures/block/<path>.png`, and definitions name it
+  as `<path>`.
+- Its connected texture, if any, is
+  `assets/westerosblocks/optifine/ctm/<path>.properties`, with tiles in
+  `optifine/ctm/<path>/`. Renaming a texture means renaming and editing its
+  `.properties` (`matchTiles`) too, or it silently stops connecting.
+- `assets/minecraft/textures/` holds only files that replace a vanilla file of
+  the same name. Textures made for vanilla blocks (random grass, ores, vines,
+  ...) go under `westerosblocks/textures/block/vanilla/<block>/`; a model in
+  `assets/minecraft/models/` can name a `westerosblocks:` texture.
+- Polytone colormaps are named by id: `"colorMult": "westerosblocks:<name>"`
+  for `assets/westerosblocks/polytone/colormaps/<name>.png`.
+- Item icons for blocks with `customItemTexture: true` are found by name:
+  `textures/item/<blockName>.png`.
+- Animation sidecars are named `<texture>.png.mcmeta`.
+- Don't keep `old/`, `unused`, `donotuse` or `noctm` copies; git history keeps
+  old versions. Texture paths are client-only, so moving one never touches
+  blockstates, but it can break CTM, Polytone or an outside resource pack.
+
 ## Common tasks
 
 **Add or change a block.** Edit `definitions/WesterosBlocks.json`, keeping it
