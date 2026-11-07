@@ -83,13 +83,17 @@ is a fork of Continuity that adds connected textures. Follow the
 [Continuity Connected Textures Specification](https://github.com/PepperCode1/Continuity/wiki/Continuity-Connected-Textures-Specification),
 which uses the OptiFine CTM `.properties` format.
 
-- Files: `assets/*/optifine/ctm/**.properties` plus their tile PNGs (about
-  1,500 files; methods `ctm`, `ctm_compact`, `fixed`, `horizontal`, `vertical`,
-  `repeat`, `random`).
+- Files: `assets/*/optifine/ctm/**.properties` plus their tile PNGs (1,403
+  `.properties` files; methods `ctm`, `ctm_compact`, `fixed`, `horizontal`,
+  `vertical`, `horizontal+vertical`, `vertical+horizontal`, `repeat`,
+  `random`). The fork adds `connect_to_tag` and `connect_to_states`.
 - `scripts/ctm_to_continuity.py` converts the old upstream CTM format to this
   one.
 - Without the mod, blocks show their base texture; that is expected in the dev
   client.
+- Full reference (spec, the fork's `connect_to_tag` and `connect_to_states`,
+  how this repo's files are laid out, known problems, and a checklist):
+  [docs/connected-textures.md](docs/connected-textures.md).
 
 ## Build and run
 
