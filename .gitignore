@@ -43,5 +43,7 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
-.claude
+# Claude Code: keep local settings out, but share the vendored skills
+.claude/*
+!.claude/skills/
 src/main/generated/

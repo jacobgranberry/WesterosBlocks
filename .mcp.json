@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "minecraft-dev": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@mcdxai/minecraft-dev-mcp@1.3.0"]
+    }
+  }
+}
