@@ -95,6 +95,23 @@ which uses the OptiFine CTM `.properties` format.
   how this repo's files are laid out, known problems, and a checklist):
   [docs/connected-textures.md](docs/connected-textures.md).
 
+## AzureLib (animated geo models)
+
+**AzureLib** ([docs](https://moddedmc.wiki/en/project/azurelib/latest/docs))
+renders Bedrock `.geo.json` models with optional animation. Unlike the two mods
+above it is a required dependency (`modImplementation` and `depends`), so it
+loads in `runClient` and servers need it too. Version: `azurelib_version` in
+`gradle.properties`.
+
+- Used for the big door (`WCBigDoorBlock*`, bones set in code) and the shield
+  items (`ModShieldRenderer`). Files: `assets/westerosblocks/geo/`,
+  `animations/`.
+- Use it only for blocks or items that move or need a model a vanilla JSON
+  model cannot express. Its free rotation angles apply only to its own geo
+  models; vanilla block models get extra angles from Polytone instead.
+- Full reference (what we use, the mirrored X axis, version differences, known
+  problems, a checklist): [docs/azurelib.md](docs/azurelib.md).
+
 ## Build and run
 
 ```bash
