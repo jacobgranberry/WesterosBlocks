@@ -75,6 +75,8 @@ resource-pack extension mod.
   26.5 and -20 on purpose. Do not "fix" them to vanilla angles. Model errors
   about these angles in the dev client log appear only because Polytone is not
   loaded there; they are not bugs.
+- Full reference, including where the wiki and the 1.21.1 code disagree:
+  [docs/polytone.md](docs/polytone.md).
 
 **WesterosContinuity** ([Modrinth](https://modrinth.com/mod/westeroscontinuity))
 is a fork of Continuity that adds connected textures. Follow the
