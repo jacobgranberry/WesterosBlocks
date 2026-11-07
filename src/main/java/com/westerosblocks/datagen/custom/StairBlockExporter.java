@@ -227,11 +227,7 @@ public class StairBlockExporter extends BaseBlockExporter {
         for (StairRotation rot : STAIR_ROTATIONS) {
             List<BlockStateVariant> variants = buildVariantsForRotation(rot, modelSets, noUvlock);
 
-            if (variants.size() == 1) {
-                variantMap.register(rot.facing(), rot.half(), rot.shape(), variants.get(0));
-            } else {
-                variantMap.register(rot.facing(), rot.half(), rot.shape(), variants);
-            }
+            variantMap.register(rot.facing(), rot.half(), rot.shape(), variants);
         }
 
         generator.blockStateCollector.accept(
@@ -254,11 +250,7 @@ public class StairBlockExporter extends BaseBlockExporter {
             for (StairRotation rot : STAIR_ROTATIONS) {
                 List<BlockStateVariant> variants = buildVariantsForRotation(rot, modelSets, noUvlock);
 
-                if (variants.size() == 1) {
-                    variantMap.register(rot.facing(), rot.half(), rot.shape(), stateId, variants.get(0));
-                } else {
-                    variantMap.register(rot.facing(), rot.half(), rot.shape(), stateId, variants);
-                }
+                variantMap.register(rot.facing(), rot.half(), rot.shape(), stateId, variants);
             }
         }
 
@@ -268,35 +260,19 @@ public class StairBlockExporter extends BaseBlockExporter {
     }
 
     private static List<BlockStateVariant> buildVariantsForRotation(StairRotation rot, List<StairModelSet> modelSets, boolean noUvlock) {
-        List<BlockStateVariant> variants = new ArrayList<>();
+        TextureSetVariants.Transform transform = TextureSetVariants.Transform.of(rot.x(), rot.y());
+        transform = transform.withUvlock(!noUvlock && transform.isRotated());
 
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
         for (StairModelSet modelSet : modelSets) {
             Identifier model = switch (rot.modelType()) {
                 case "inner" -> modelSet.inner();
                 case "outer" -> modelSet.outer();
                 default -> modelSet.base();
             };
-
-            BlockStateVariant variant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, model);
-
-            if (rot.x() != 0) {
-                variant.put(VariantSettings.X, toYRotation(rot.x()));
-            }
-            if (rot.y() != 0) {
-                variant.put(VariantSettings.Y, toYRotation(rot.y()));
-            }
-            if (!noUvlock && (rot.x() != 0 || rot.y() != 0)) {
-                variant.put(VariantSettings.UVLOCK, true);
-            }
-            if (modelSet.weight() > 1) {
-                variant.put(VariantSettings.WEIGHT, modelSet.weight());
-            }
-
-            variants.add(variant);
+            choices.add(new TextureSetVariants.Choice(model, modelSet.weight()));
         }
-
-        return variants;
+        return TextureSetVariants.variants(choices, transform);
     }
 
 }

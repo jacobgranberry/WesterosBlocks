@@ -73,54 +73,49 @@ public class SolidBlockExporter extends BaseBlockExporter {
         if (hasSymmetrical && hasMultipleStates) {
             var map = BlockStateVariantMap.create(WCSolidBlock.SYMMETRICAL, stateProperty);
             for (BlockDefinition.StateVariant state : states) {
-                map.register(true, state.getStateID(), buildSolidVariants(block, state, rotationCount, true));
-                map.register(false, state.getStateID(), buildSolidVariants(block, state, rotationCount, false));
+                map.register(true, state.getStateID(), TextureSetVariants.variants(solidChoices(block, state, true), TextureSetVariants.Transform.NONE, rotationCount));
+                map.register(false, state.getStateID(), TextureSetVariants.variants(solidChoices(block, state, false), TextureSetVariants.Transform.NONE, rotationCount));
             }
             generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(map));
         } else if (hasMultipleStates) {
             var map = BlockStateVariantMap.create(stateProperty);
             for (BlockDefinition.StateVariant state : states) {
-                map.register(state.getStateID(), buildSolidVariants(block, state, rotationCount, null));
+                map.register(state.getStateID(), TextureSetVariants.variants(solidChoices(block, state, null), TextureSetVariants.Transform.NONE, rotationCount));
             }
             generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(map));
         } else if (hasSymmetrical) {
-            List<BlockStateVariant> symVariants = new ArrayList<>();
-            List<BlockStateVariant> asymVariants = new ArrayList<>();
+            List<TextureSetVariants.Choice> sym = new ArrayList<>();
+            List<TextureSetVariants.Choice> asym = new ArrayList<>();
             for (BlockDefinition.StateVariant state : states) {
-                symVariants.addAll(buildSolidVariants(block, state, rotationCount, true));
-                asymVariants.addAll(buildSolidVariants(block, state, rotationCount, false));
+                sym.addAll(solidChoices(block, state, true));
+                asym.addAll(solidChoices(block, state, false));
             }
             var map = BlockStateVariantMap.create(WCSolidBlock.SYMMETRICAL)
-                    .register(true, symVariants)
-                    .register(false, asymVariants);
+                    .register(true, TextureSetVariants.variants(sym, TextureSetVariants.Transform.NONE, rotationCount))
+                    .register(false, TextureSetVariants.variants(asym, TextureSetVariants.Transform.NONE, rotationCount));
             generator.blockStateCollector.accept(VariantsBlockStateSupplier.create(block).coordinate(map));
         } else {
-            List<BlockStateVariant> variants = new ArrayList<>();
+            List<TextureSetVariants.Choice> choices = new ArrayList<>();
             for (BlockDefinition.StateVariant state : states) {
-                variants.addAll(buildSolidVariants(block, state, rotationCount, null));
+                choices.addAll(solidChoices(block, state, null));
             }
+            List<BlockStateVariant> variants = TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount);
             generator.blockStateCollector.accept(
                     VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0])));
         }
     }
 
-    /** Build weighted, optionally-rotated variants for one state. {@code symmetrical} is null for non-symmetrical blocks. */
-    private static List<BlockStateVariant> buildSolidVariants(Block block, BlockDefinition.StateVariant state,
-            int rotationCount, Boolean symmetrical) {
+    /** The model choices for one state. {@code symmetrical} is null for non-symmetrical blocks. */
+    private static List<TextureSetVariants.Choice> solidChoices(Block block, BlockDefinition.StateVariant state,
+            Boolean symmetrical) {
         String fname = getStateIdOrBase(state.getStateID());
-        List<BlockStateVariant> variants = new ArrayList<>();
-        state.forEachTextureSet((setIdx, set) -> {
-            if (set == null) return;
-            int weight = set.getWeight();
+        return TextureSetVariants.choices(state, (setIdx, set) -> {
+            if (set == null) return null;
             String modelName = (symmetrical == null)
                     ? getModelName(fname, setIdx)
                     : getModelName(fname, setIdx, symmetrical);
-            Identifier modelId = createNestedModelId(block, modelName);
-            for (int rot = 0; rot < rotationCount; rot++) {
-                variants.add(createWeightedVariant(modelId, rot * 90, weight));
-            }
+            return createNestedModelId(block, modelName);
         });
-        return variants;
     }
 
     private static void generateSolidModel(BlockStateModelGenerator generator, Block block, String modelName,

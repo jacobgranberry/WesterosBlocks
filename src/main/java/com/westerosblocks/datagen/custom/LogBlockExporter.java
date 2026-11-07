@@ -9,7 +9,6 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class LogBlockExporter extends BaseBlockExporter {
@@ -46,33 +45,14 @@ public class LogBlockExporter extends BaseBlockExporter {
             int xRot = axis == Direction.Axis.Y ? 0 : 90;
             int yRot = axis == Direction.Axis.X ? 90 : 0;
 
-            List<BlockStateVariant> variants = new ArrayList<>();
+            List<BlockStateVariant> variants = TextureSetVariants.variants(
+                TextureSetVariants.choices(state, (setIdx, set) ->
+                    set == null || set.getTextureCount() == 0
+                        ? null
+                        : createGeneratedModelId(block, getModelName(axisName, setIdx))),
+                TextureSetVariants.Transform.of(xRot, yRot));
 
-            for (int setIdx = 0; setIdx < state.getRandomTextureSetCount(); setIdx++) {
-                BlockDefinition.RandomTextureVariant set = state.getRandomTextureSet(setIdx);
-                if (set == null || set.getTextureCount() == 0) continue;
-
-                Identifier modelId = createGeneratedModelId(block, getModelName(axisName, setIdx));
-
-                BlockStateVariant variant = BlockStateVariant.create()
-                    .put(VariantSettings.MODEL, modelId);
-
-                if (xRot > 0) {
-                    variant.put(VariantSettings.X, xRot == 90 ? VariantSettings.Rotation.R90 : VariantSettings.Rotation.R0);
-                }
-                if (yRot > 0) {
-                    variant.put(VariantSettings.Y, yRot == 90 ? VariantSettings.Rotation.R90 : VariantSettings.Rotation.R0);
-                }
-                if (set.getWeight() > 1) {
-                    variant.put(VariantSettings.WEIGHT, set.getWeight());
-                }
-
-                variants.add(variant);
-            }
-
-            if (variants.size() == 1) {
-                variantMap.register(axis, variants.get(0));
-            } else if (!variants.isEmpty()) {
+            if (!variants.isEmpty()) {
                 variantMap.register(axis, variants);
             }
         }

@@ -37,41 +37,28 @@ public class VinesBlockExporter extends BaseBlockExporter {
                                                                      List<Identifier> topModelIds, List<Integer> weights) {
         MultipartBlockStateSupplier supplier = MultipartBlockStateSupplier.create(block);
 
-        for (int i = 0; i < sideModelIds.size(); i++) {
-            Identifier sideModelId = sideModelIds.get(i);
-            Identifier topModelId = topModelIds.get(i);
-            int weight = weights.get(i);
+        // One entry per attachment, with the texture sets as its weighted random choices
+        List<TextureSetVariants.Choice> sides = choices(sideModelIds, weights);
+        List<TextureSetVariants.Choice> tops = choices(topModelIds, weights);
 
-            addDirectionalVariants(supplier, sideModelId, topModelId, weight);
-        }
+        // Side models face south unrotated
+        supplier.with(When.create().set(Properties.SOUTH, true), TextureSetVariants.variants(sides, TextureSetVariants.Transform.y(0)));
+        supplier.with(When.create().set(Properties.WEST, true), TextureSetVariants.variants(sides, TextureSetVariants.Transform.y(90)));
+        supplier.with(When.create().set(Properties.NORTH, true), TextureSetVariants.variants(sides, TextureSetVariants.Transform.y(180)));
+        supplier.with(When.create().set(Properties.EAST, true), TextureSetVariants.variants(sides, TextureSetVariants.Transform.y(270)));
+        supplier.with(When.create().set(Properties.UP, true), TextureSetVariants.variants(tops, TextureSetVariants.Transform.NONE));
+        // Down attachment is the top model flipped (180° X rotation)
+        supplier.with(When.create().set(WCVinesBlock.DOWN, true), TextureSetVariants.variants(tops, TextureSetVariants.Transform.of(180, 0)));
 
         return supplier;
     }
 
-    private static void addDirectionalVariants(MultipartBlockStateSupplier supplier, Identifier sideModelId,
-                                               Identifier topModelId, int weight) {
-        // South attachment (no rotation)
-        supplier.with(When.create().set(Properties.SOUTH, true), createWeightedVariant(sideModelId, 0, weight));
-        // West attachment (90° rotation)
-        supplier.with(When.create().set(Properties.WEST, true), createWeightedVariant(sideModelId, 90, weight));
-        // North attachment (180° rotation)
-        supplier.with(When.create().set(Properties.NORTH, true), createWeightedVariant(sideModelId, 180, weight));
-        // East attachment (270° rotation)
-        supplier.with(When.create().set(Properties.EAST, true), createWeightedVariant(sideModelId, 270, weight));
-        // Up attachment
-        supplier.with(When.create().set(Properties.UP, true), createWeightedVariant(topModelId, 0, weight));
-        // Down attachment (180° X rotation)
-        supplier.with(When.create().set(WCVinesBlock.DOWN, true), createWeightedVariantX(topModelId, weight));
-    }
-
-    private static BlockStateVariant createWeightedVariantX(Identifier modelId, int weight) {
-        BlockStateVariant variant = BlockStateVariant.create()
-                .put(VariantSettings.MODEL, modelId)
-                .put(VariantSettings.X, VariantSettings.Rotation.R180);
-        if (weight > 1) {
-            variant = variant.put(VariantSettings.WEIGHT, weight);
+    private static List<TextureSetVariants.Choice> choices(List<Identifier> modelIds, List<Integer> weights) {
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
+        for (int i = 0; i < modelIds.size(); i++) {
+            choices.add(new TextureSetVariants.Choice(modelIds.get(i), weights.get(i)));
         }
-        return variant;
+        return choices;
     }
 
     public static void registerVinesBlock(BlockStateModelGenerator generator, Block block, boolean tinted,

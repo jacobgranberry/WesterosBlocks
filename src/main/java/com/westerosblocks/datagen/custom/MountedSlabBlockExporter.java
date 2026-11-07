@@ -50,18 +50,19 @@ public class MountedSlabBlockExporter extends BaseBlockExporter {
         boolean isCustom = definition.hasCustomModel() || (state != null && state.isCustomModel());
 
         // Build model ID lists and optionally generate models
-        List<Identifier> topModels = new ArrayList<>();
-        List<Identifier> bottomModels = new ArrayList<>();
+        List<TextureSetVariants.Choice> topModels = new ArrayList<>();
+        List<TextureSetVariants.Choice> bottomModels = new ArrayList<>();
         for (int i = 0; i < variantCount; i++) {
             String topVariant = "top_v" + (i + 1);
             String bottomVariant = "bottom_v" + (i + 1);
 
+            int weight = weights.get(i);
             if (isCustom) {
-                topModels.add(createCustomModelId(block, topVariant));
-                bottomModels.add(createCustomModelId(block, bottomVariant));
+                topModels.add(new TextureSetVariants.Choice(createCustomModelId(block, topVariant), weight));
+                bottomModels.add(new TextureSetVariants.Choice(createCustomModelId(block, bottomVariant), weight));
             } else {
-                topModels.add(createNestedModelId(block, topVariant));
-                bottomModels.add(createNestedModelId(block, bottomVariant));
+                topModels.add(new TextureSetVariants.Choice(createNestedModelId(block, topVariant), weight));
+                bottomModels.add(new TextureSetVariants.Choice(createNestedModelId(block, bottomVariant), weight));
                 generateMountedSlabModels(generator, block, i, state, definition);
             }
         }
@@ -71,31 +72,9 @@ public class MountedSlabBlockExporter extends BaseBlockExporter {
             BlockStateVariantMap.create(Properties.HORIZONTAL_FACING, Properties.BLOCK_HALF);
 
         for (int d = 0; d < 4; d++) {
-            Direction dir = DIRECTIONS[d];
-            int rot = ROTATIONS[d];
-
-            if (variantCount == 1) {
-                // Single variant
-                variantMap.register(dir, BlockHalf.BOTTOM, createVariantWithRotation(bottomModels.get(0), rot));
-                variantMap.register(dir, BlockHalf.TOP, createVariantWithRotation(topModels.get(0), rot));
-            } else {
-                // Multiple variants with weights
-                List<BlockStateVariant> bottomVariants = new ArrayList<>();
-                List<BlockStateVariant> topVariants = new ArrayList<>();
-                for (int i = 0; i < variantCount; i++) {
-                    BlockStateVariant bv = createVariantWithRotation(bottomModels.get(i), rot);
-                    BlockStateVariant tv = createVariantWithRotation(topModels.get(i), rot);
-                    int weight = weights.get(i);
-                    if (weight > 1) {
-                        bv.put(VariantSettings.WEIGHT, weight);
-                        tv.put(VariantSettings.WEIGHT, weight);
-                    }
-                    bottomVariants.add(bv);
-                    topVariants.add(tv);
-                }
-                variantMap.register(dir, BlockHalf.BOTTOM, bottomVariants);
-                variantMap.register(dir, BlockHalf.TOP, topVariants);
-            }
+            TextureSetVariants.Transform transform = TextureSetVariants.Transform.y(ROTATIONS[d]);
+            variantMap.register(DIRECTIONS[d], BlockHalf.BOTTOM, TextureSetVariants.variants(bottomModels, transform));
+            variantMap.register(DIRECTIONS[d], BlockHalf.TOP, TextureSetVariants.variants(topModels, transform));
         }
 
         generator.blockStateCollector.accept(
@@ -103,7 +82,7 @@ public class MountedSlabBlockExporter extends BaseBlockExporter {
         );
 
         // Item model parented to first bottom variant
-        registerParentedItemModel(generator, block, bottomModels.get(0));
+        registerParentedItemModel(generator, block, bottomModels.get(0).model());
     }
 
     private static void generateMountedSlabModels(BlockStateModelGenerator generator, Block block,
@@ -163,18 +142,5 @@ public class MountedSlabBlockExporter extends BaseBlockExporter {
 
         Identifier topModelId = createNestedModelId(block, "top_v" + (setIdx + 1));
         topModel.upload(topModelId, textureMap, generator.modelCollector);
-    }
-
-    private static BlockStateVariant createVariantWithRotation(Identifier modelId, int rotation) {
-        BlockStateVariant variant = BlockStateVariant.create().put(VariantSettings.MODEL, modelId);
-        if (rotation > 0) {
-            variant.put(VariantSettings.Y, switch (rotation) {
-                case 90 -> VariantSettings.Rotation.R90;
-                case 180 -> VariantSettings.Rotation.R180;
-                case 270 -> VariantSettings.Rotation.R270;
-                default -> VariantSettings.Rotation.R0;
-            });
-        }
-        return variant;
     }
 }

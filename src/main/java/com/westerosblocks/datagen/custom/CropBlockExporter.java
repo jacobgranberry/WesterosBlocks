@@ -85,10 +85,8 @@ public class CropBlockExporter extends BaseBlockExporter {
                 String stateID = state.getStateID();
                 if (stateID == null) continue;
 
-                List<BlockStateVariant> variants = buildCropVariants(block, state, layer, rotationCount);
-                if (variants.size() == 1) {
-                    variantMap.register(layer, stateID, variants.get(0));
-                } else if (!variants.isEmpty()) {
+                List<BlockStateVariant> variants = TextureSetVariants.variants(cropChoices(block, state, layer), TextureSetVariants.Transform.NONE, rotationCount);
+                if (!variants.isEmpty()) {
                     variantMap.register(layer, stateID, variants);
                 }
             }
@@ -108,13 +106,12 @@ public class CropBlockExporter extends BaseBlockExporter {
         int[] layerOrder = {8, 1, 2, 3, 4, 5, 6, 7};
 
         for (int layer : layerOrder) {
-            List<BlockStateVariant> variants = new ArrayList<>();
+            List<TextureSetVariants.Choice> choices = new ArrayList<>();
             for (BlockDefinition.StateVariant state : states) {
-                variants.addAll(buildCropVariants(block, state, layer, rotationCount));
+                choices.addAll(cropChoices(block, state, layer));
             }
-            if (variants.size() == 1) {
-                variantMap.register(layer, variants.get(0));
-            } else if (!variants.isEmpty()) {
+            List<BlockStateVariant> variants = TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount);
+            if (!variants.isEmpty()) {
                 variantMap.register(layer, variants);
             }
         }
@@ -135,10 +132,8 @@ public class CropBlockExporter extends BaseBlockExporter {
             String stateID = state.getStateID();
             if (stateID == null) continue;
 
-            List<BlockStateVariant> variants = buildCropVariants(block, state, 8, rotationCount);
-            if (variants.size() == 1) {
-                variantMap.register(stateID, variants.get(0));
-            } else if (!variants.isEmpty()) {
+            List<BlockStateVariant> variants = TextureSetVariants.variants(cropChoices(block, state, 8), TextureSetVariants.Transform.NONE, rotationCount);
+            if (!variants.isEmpty()) {
                 variantMap.register(stateID, variants);
             }
         }
@@ -151,53 +146,30 @@ public class CropBlockExporter extends BaseBlockExporter {
     private static void generateSimpleBlockState(BlockStateModelGenerator generator, Block block,
                                                 List<BlockDefinition.StateVariant> states,
                                                 int rotationCount) {
-        List<BlockStateVariant> variants = new ArrayList<>();
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
         for (BlockDefinition.StateVariant state : states) {
-            variants.addAll(buildCropVariants(block, state, 8, rotationCount));
+            choices.addAll(cropChoices(block, state, 8));
         }
+        List<BlockStateVariant> variants = TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount);
 
-        if (variants.size() == 1) {
-            generator.blockStateCollector.accept(
-                VariantsBlockStateSupplier.create(block, variants.get(0))
-            );
-        } else if (!variants.isEmpty()) {
+        if (!variants.isEmpty()) {
             generator.blockStateCollector.accept(
                 VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0]))
             );
         }
     }
 
-    private static List<BlockStateVariant> buildCropVariants(Block block, BlockDefinition.StateVariant state,
-                                                            int layer, int rotationCount) {
-        List<BlockStateVariant> variants = new ArrayList<>();
+    private static List<TextureSetVariants.Choice> cropChoices(Block block, BlockDefinition.StateVariant state, int layer) {
         String baseName = getStateIdOrBase(state.getStateID());
         String layerSuffix = layer != 8 ? "_layer" + layer : "";
         String modelName = baseName + layerSuffix;
 
-        for (int setIdx = 0; setIdx < state.getRandomTextureSetCount(); setIdx++) {
-            BlockDefinition.RandomTextureVariant set = state.getRandomTextureSet(setIdx);
-            if (set == null || set.getTextureCount() == 0) continue;
-
-            Identifier modelId = state.isCustomModel()
+        return TextureSetVariants.choices(state, (setIdx, set) -> {
+            if (set == null || set.getTextureCount() == 0) return null;
+            return state.isCustomModel()
                 ? createCustomModelId(block, getModelName(modelName, setIdx))
                 : createGeneratedModelId(block, getModelName(modelName, setIdx));
-
-            for (int rot = 0; rot < rotationCount; rot++) {
-                BlockStateVariant variant = BlockStateVariant.create()
-                    .put(VariantSettings.MODEL, modelId);
-
-                if (set.getWeight() > 1) {
-                    variant.put(VariantSettings.WEIGHT, set.getWeight());
-                }
-                if (rot > 0) {
-                    variant.put(VariantSettings.Y, toRotation(90 * rot));
-                }
-
-                variants.add(variant);
-            }
-        }
-
-        return variants;
+        });
     }
 
     private static void generateCropModel(BlockStateModelGenerator generator, Block block, String modelName,
@@ -216,14 +188,5 @@ public class CropBlockExporter extends BaseBlockExporter {
         TextureMap textureMap = ModTextureMap.cropTextures(set.getTextureByIndex(0));
 
         model.upload(modelId, textureMap, generator.modelCollector);
-    }
-
-    private static VariantSettings.Rotation toRotation(int degrees) {
-        return switch (degrees) {
-            case 90 -> VariantSettings.Rotation.R90;
-            case 180 -> VariantSettings.Rotation.R180;
-            case 270 -> VariantSettings.Rotation.R270;
-            default -> VariantSettings.Rotation.R0;
-        };
     }
 }

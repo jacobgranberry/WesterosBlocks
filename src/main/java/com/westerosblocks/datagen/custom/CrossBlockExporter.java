@@ -62,7 +62,8 @@ public class CrossBlockExporter extends BaseBlockExporter {
 
             for (BlockDefinition.StateVariant state : states) {
                 String stateID = getStateIdOrBase(state.getStateID());
-                List<BlockStateVariant> variants = buildStateVariants(block, state, stateID, rotationCount);
+                List<BlockStateVariant> variants = TextureSetVariants.variants(
+                    stateChoices(block, state, stateID), TextureSetVariants.Transform.NONE, rotationCount);
                 if (variants.isEmpty()) continue;
                 stateMap.register(stateID, variants);
             }
@@ -78,13 +79,14 @@ public class CrossBlockExporter extends BaseBlockExporter {
                 BlockStateVariantMap.create(Properties.LAYERS);
 
             for (int layerIdx = 0; layerIdx < layerConds.length; layerIdx++) {
-                List<BlockStateVariant> variants = new ArrayList<>();
+                List<TextureSetVariants.Choice> choices = new ArrayList<>();
                 for (BlockDefinition.StateVariant state : states) {
                     String id = getStateIdOrBase(state.getStateID());
                     if (layerIdx > 0) id = id + "_layer" + layerIdx;
-                    variants.addAll(buildStateVariants(block, state, id, rotationCount));
+                    choices.addAll(stateChoices(block, state, id));
                 }
-                layerMap.register(layerConds[layerIdx], variants);
+                layerMap.register(layerConds[layerIdx],
+                    TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount));
             }
 
             generator.blockStateCollector.accept(
@@ -92,11 +94,12 @@ public class CrossBlockExporter extends BaseBlockExporter {
             return;
         }
 
-        List<BlockStateVariant> variants = new ArrayList<>();
+        List<TextureSetVariants.Choice> choices = new ArrayList<>();
         for (BlockDefinition.StateVariant state : states) {
-            String id = getStateIdOrBase(state.getStateID());
-            variants.addAll(buildStateVariants(block, state, id, rotationCount));
+            choices.addAll(stateChoices(block, state, getStateIdOrBase(state.getStateID())));
         }
+        List<BlockStateVariant> variants =
+            TextureSetVariants.variants(choices, TextureSetVariants.Transform.NONE, rotationCount);
         generator.blockStateCollector.accept(
             VariantsBlockStateSupplier.create(block, variants.toArray(new BlockStateVariant[0])));
     }

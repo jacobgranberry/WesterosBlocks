@@ -39,7 +39,7 @@ public class CuboidNSEWUDBlockExporter extends CuboidBlockExporter {
         boolean hasMultipleStates = definition.getStateCount() > 1;
 
         CuboidNSEWUDBlockExporter exporter = new CuboidNSEWUDBlockExporter();
-        Map<String, List<Identifier>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
+        Map<String, List<TextureSetVariants.Choice>> stateModelMap = exporter.generateModelsReturnMap(generator, block, definition);
 
         if (stateModelMap.isEmpty()) {
             WesterosBlocks.LOGGER.warn("No models generated for NSEWUD cuboid block: {}", getBlockName(block));
@@ -49,7 +49,7 @@ public class CuboidNSEWUDBlockExporter extends CuboidBlockExporter {
         generator.blockStateCollector.accept(
                 generateFacingBlockState(block, stateModelMap, states, hasMultipleStates, s -> NSEWUD_ROTATIONS));
 
-        Identifier firstModel = stateModelMap.values().iterator().next().get(0);
+        Identifier firstModel = stateModelMap.values().iterator().next().get(0).model();
         registerParentedItemModel(generator, block, firstModel);
     }
 

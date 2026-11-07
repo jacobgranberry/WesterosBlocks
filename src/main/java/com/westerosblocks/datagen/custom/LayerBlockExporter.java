@@ -9,7 +9,6 @@ import net.minecraft.data.client.*;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,28 +58,15 @@ public class LayerBlockExporter extends BaseBlockExporter {
         for (int layer = 1; layer <= layerBlock.layerCount; layer++) {
             if (isCustomModel) {
                 Identifier modelId = createCustomModelId(block, "layer" + layer + "_v1");
-                variantMap.register(layer, BlockStateVariant.create().put(VariantSettings.MODEL, modelId));
+                variantMap.register(layer, TextureSetVariants.variant(modelId));
             } else {
-                List<BlockStateVariant> layerVariants = new ArrayList<>();
+                String layerName = "layer" + layer;
+                List<BlockStateVariant> layerVariants = TextureSetVariants.variants(state, (setIdx, set) ->
+                    set == null || set.getTextureCount() == 0
+                        ? null
+                        : createGeneratedModelId(block, getModelName(layerName, setIdx)), 1);
 
-                for (int setIdx = 0; setIdx < state.getRandomTextureSetCount(); setIdx++) {
-                    BlockDefinition.RandomTextureVariant set = state.getRandomTextureSet(setIdx);
-                    if (set == null || set.getTextureCount() == 0) {
-                        continue;
-                    }
-
-                    Identifier modelId = createGeneratedModelId(block, getModelName("layer" + layer, setIdx));
-                    BlockStateVariant variant = BlockStateVariant.create()
-                        .put(VariantSettings.MODEL, modelId);
-                    if (set.getWeight() > 1) {
-                        variant.put(VariantSettings.WEIGHT, set.getWeight());
-                    }
-                    layerVariants.add(variant);
-                }
-
-                if (layerVariants.size() == 1) {
-                    variantMap.register(layer, layerVariants.getFirst());
-                } else if (!layerVariants.isEmpty()) {
+                if (!layerVariants.isEmpty()) {
                     variantMap.register(layer, layerVariants);
                 }
             }
