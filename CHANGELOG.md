@@ -1,5 +1,38 @@
 # Changelog
 
+## November 2026
+
+### New Blocks
+
+- `algood_banner`
+- `bettley_banner`
+- `doggett_banner`
+- `drox_banner`
+- `estren_banner`
+- `falwell_banner`
+- `ferren_banner`
+- `foote_banner`
+- `frey_bastard_banner`
+- `garner_banner`
+- `greenfield_banner`
+- `hamell_banner`
+- `hawthorne_banner`
+- `hetherspoon_banner`
+- `jast_banner`
+- `kenning_banner`
+- `lorch_banner`
+- `moreland_banner`
+- `myatt_banner`
+- `peckledon_banner`
+- `ruttiger_banner`
+- `sarsfield_banner`
+- `spicer_banner`
+- `stackspear_banner`
+- `turnberry_banner`
+- `vikary_banner`
+- `yarwyck_banner`
+- `yew_banner`
+
 ## July 2026
 
 ### New Blocks
