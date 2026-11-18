@@ -12,7 +12,6 @@
 - `falwell_banner`
 - `ferren_banner`
 - `foote_banner`
-- `frey_bastard_banner`
 - `garner_banner`
 - `greenfield_banner`
 - `hamell_banner`
